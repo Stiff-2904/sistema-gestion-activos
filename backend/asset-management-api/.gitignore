@@ -1,0 +1,28 @@
+# Maven
+target/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+.nb-gradle/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Eclipse / Spring Tools
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
+
+# Configuracion local
+application-local.properties
+
+# OS
+.DS_Store
+Thumbs.db
