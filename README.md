@@ -1,44 +1,53 @@
 # Sistema de Gestion de Activos
 
-Sistema de Gestion de Activos para el CTP Osa.
+Sistema web para la gestion de activos e inventario del CTP Osa.
 
-Actualmente el proyecto se encuentra en desarrollo y cuenta con el backend de la aplicacion. El frontend sera incorporado posteriormente.
+El proyecto se encuentra actualmente en desarrollo. El backend se desarrolla primero y posteriormente se integrara el frontend.
 
 ## Estructura del proyecto
 
 ```text
 sistema-gestion-activos/
+
 ├── backend/
+
 │   └── asset-management-api/
+
 │       ├── src/
-│       │   ├── main/
-│       │   │   ├── java/
-│       │   │   └── resources/
-│       │   ├── test/
-│       │   └── ...
-│       ├── .gitignore
+
 │       ├── pom.xml
-│       ├── mvnw
-│       └── mvnw.cmd
-│
+
+│       └── ...
+
 ├── frontend/
+
 │   └── ...
-│
+
 └── README.md
 ```
 
 ## Backend
 
-El backend se encuentra desarrollado utilizando:
+El backend esta desarrollado con las siguientes tecnologias:
 
 * Java 25
+
 * Spring Boot 4.1.1
+
 * Maven
+
 * Spring Web
+
 * Spring Data JPA
+
 * Hibernate
+
 * Spring Security
+
+* JWT
+
 * Validation
+
 * MySQL
 
 ### Requisitos
@@ -46,74 +55,69 @@ El backend se encuentra desarrollado utilizando:
 Para ejecutar el backend se necesita:
 
 * JDK 25
-* NetBeans u otro IDE compatible con Maven
-* Acceso a la base de datos MySQL
-* Credenciales de acceso a la base de datos
 
-El proyecto incluye Maven Wrapper, por lo que no es necesario instalar Maven manualmente.
+* NetBeans u otro IDE compatible con Maven
+
+* MySQL
+
+* Acceso a la base de datos utilizada por el proyecto
+
+El proyecto incluye Maven Wrapper, por lo que no es necesario instalar Maven de forma global.
 
 ## Configuracion
 
-La aplicacion utiliza los perfiles de configuracion de Spring Boot para separar la configuracion general de la configuracion local.
+La configuracion del proyecto utiliza perfiles de Spring Boot.
 
-El archivo:
+El archivo `application.properties` activa el perfil local:
 
-```text
-src/main/resources/application.properties
+```properties
+spring.profiles.active=local
 ```
 
-contiene la configuracion general del proyecto y activa el perfil `local` durante el desarrollo.
-
-La configuracion especifica del entorno local debe encontrarse en:
+La configuracion local se encuentra en:
 
 ```text
 src/main/resources/application-local.properties
 ```
 
-Este archivo **no se encuentra incluido en el repositorio**, ya que contiene informacion sensible, como las credenciales de la base de datos.
+Este archivo no debe incluirse en el repositorio si contiene credenciales o informacion sensible.
 
-### Configuracion local
-
-Cada desarrollador debe crear manualmente el archivo:
-
-```text
-src/main/resources/application-local.properties
-```
-
-con la siguiente estructura:
+Ejemplo de configuracion:
 
 ```properties
 spring.datasource.url=jdbc:mysql://HOST:PUERTO/NOMBRE_BASE_DATOS
+
 spring.datasource.username=USUARIO
+
 spring.datasource.password=CONTRASENA
 ```
 
-Se deben reemplazar los valores de ejemplo por las credenciales correspondientes al entorno de desarrollo.
-
-Por ejemplo:
+Ejemplo para una instalacion local:
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/control_activos
+
 spring.datasource.username=app_user
-spring.datasource.password=TU_CONTRASENA
+
+spring.datasource.password=CONTRASENA
 ```
 
-**No se deben agregar credenciales reales al repositorio.**
+## Ejecucion
 
-El archivo `application-local.properties` se encuentra excluido mediante `.gitignore`.
-
-### Ejecucion
-
-El proyecto esta configurado para utilizar el perfil `local` durante el desarrollo.
-
-Para ejecutar el backend desde NetBeans:
+Desde NetBeans:
 
 1. Abrir el proyecto `asset-management-api`.
-2. Verificar que el archivo `application-local.properties` exista dentro de `src/main/resources/`.
-3. Verificar que las credenciales de la base de datos sean correctas.
-4. Ejecutar el proyecto utilizando la opcion **Run Project** de NetBeans.
+2. Configurar el JDK 25.
+3. Verificar la configuracion de la base de datos.
+4. Ejecutar el proyecto como aplicacion Spring Boot.
 
-La aplicacion se inicia por defecto en:
+Tambien se puede ejecutar mediante Maven Wrapper:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+El backend queda disponible por defecto en:
 
 ```text
 http://localhost:8080
@@ -123,73 +127,197 @@ http://localhost:8080
 
 El backend utiliza MySQL como sistema gestor de base de datos.
 
-La aplicacion utiliza:
+La configuracion de JPA utiliza:
 
 ```properties
 spring.jpa.hibernate.ddl-auto=validate
 ```
 
-Esto permite que Hibernate valide que la estructura de la base de datos sea compatible con las entidades sin modificar automaticamente las tablas existentes.
+No se utilizan las opciones `create`, `create-drop` o `update`, debido a que la base de datos puede ser compartida y su estructura debe administrarse de forma controlada.
 
-No se deben utilizar configuraciones como `create`, `create-drop` o `update` en este proyecto, debido a que la base de datos es compartida entre los integrantes del equipo.
+## Autenticacion
 
-## Estado del proyecto
+El sistema utiliza autenticacion mediante correo electronico, contrasena y tokens JWT.
 
-Actualmente se encuentra configurada la estructura inicial del backend, incluyendo:
+### Inicio de sesion
 
-* Spring Boot
-* Java 25
-* Maven
-* Spring Web
-* Spring Data JPA
-* Hibernate
-* Spring Security
-* Validation
-* MySQL
-* Conexion con la base de datos
-* Configuracion mediante perfiles de Spring Boot
-* Configuracion del entorno local
+Endpoint:
 
-Las entidades, repositorios, servicios, controladores, autenticacion y autorizacion se desarrollaran progresivamente durante los sprints del proyecto.
-
-## Git
-
-El proyecto utiliza Git para el control de versiones.
-
-La rama `main` se utilizara para mantener la version estable e integrada del proyecto.
-
-Cada sprint tendra su propia rama:
-
-```text
-main
-└── sprint/01
+```http
+POST /api/v1/auth/login
 ```
 
-Dentro de los sprints se pueden crear ramas de funcionalidad cuando sea necesario:
+Solicitud:
 
-```text
-main
-└── sprint/01
-    ├── feature/backend-setup
-    ├── feature/database-connection
-    └── feature/asset-crud
+```json
+{
+    "email": "usuario@example.com",
+    "password": "contrasena"
+}
 ```
 
-Las funcionalidades terminadas se integraran primero en la rama correspondiente al sprint y posteriormente el sprint se integrara a `main`.
+Respuesta exitosa:
+
+```json
+{
+    "token": "eyJ...",
+    "id": 1,
+    "name": "Nombre del usuario",
+    "email": "usuario@example.com",
+    "role": "Nombre del rol"
+}
+```
+
+El token JWT generado contiene informacion necesaria para identificar al usuario autenticado y controlar el acceso a los recursos protegidos.
+
+### Creacion de usuarios
+
+La creacion de usuarios requiere autenticacion y autorizacion mediante permisos.
+
+Endpoint:
+
+```http
+POST /api/v1/users
+```
+
+Este endpoint requiere el permiso `USER_CREATE` o el permiso `ALL`.
+
+Actualmente el rol `SUPERUSER` posee el permiso `ALL`, por lo que puede crear usuarios.
+
+Solicitud:
+
+```json
+{
+    "name": "Juan Perez",
+    "email": "juan@ctposa.ac.cr",
+    "password": "123456",
+    "role": "BASIC_USER"
+}
+```
+
+Respuesta exitosa:
+
+```http
+201 Created
+```
+
+```json
+{
+    "id": 2,
+    "name": "Juan Perez",
+    "email": "juan@ctposa.ac.cr",
+    "role": "BASIC_USER",
+    "active": true
+}
+```
+
+Las contrasenas son almacenadas mediante BCrypt. La contrasena y su hash no se incluyen en la respuesta del endpoint.
+
+El correo debe ser unico y el rol indicado debe existir en la base de datos.
+
+### Autorizacion
+
+Los endpoints protegidos requieren un token JWT valido mediante el encabezado:
+
+```http
+Authorization: Bearer <TOKEN>
+```
+
+El sistema utiliza roles y permisos para controlar el acceso a las operaciones.
+
+Actualmente se utiliza el permiso `ALL` para otorgar acceso completo al `SUPERUSER`.
+
+### Codigos de respuesta
+
+| Codigo             | Significado                                                           |
+| ------------------ | --------------------------------------------------------------------- |
+| `200 OK`           | Inicio de sesion o consulta exitosa                                   |
+| `201 Created`      | Recurso creado correctamente                                          |
+| `400 Bad Request`  | Datos faltantes, formato invalido, correo duplicado o rol inexistente |
+| `401 Unauthorized` | Credenciales incorrectas o falta de autenticacion                     |
+| `403 Forbidden`    | Usuario autenticado sin permisos para realizar la operacion           |
+
+La autenticacion mediante JWT y la autorizacion mediante roles y permisos se encuentran implementadas.
+
+## Estado actual
+
+Actualmente el backend cuenta con:
+
+* Estructura inicial de Spring Boot.
+
+* Configuracion con Java 25.
+
+* Configuracion de Maven.
+
+* Spring Web.
+
+* Spring Data JPA.
+
+* Hibernate.
+
+* Spring Security.
+
+* Validacion de datos.
+
+* Conexion con MySQL.
+
+* Perfiles de configuracion local.
+
+* Modelo inicial de usuarios y roles.
+
+* Autenticacion mediante correo y contrasena.
+
+* Validacion de credenciales.
+
+* Generacion de tokens JWT.
+
+* Manejo de errores HTTP para autenticacion y autorizacion.
+
+* Configuracion para proteger endpoints mediante JWT.
+
+* Autorizacion mediante roles y permisos.
+
+* Creacion de usuarios mediante endpoint protegido.
+
+* Validacion de correo duplicado.
+
+* Almacenamiento seguro de contrasenas mediante BCrypt.
+
+Las funcionalidades de gestion de activos, inventario, roles, permisos y auditoria continuaran implementandose por etapas.
 
 ## Seguridad
 
-Las credenciales, contrasenas y cualquier otra informacion sensible no deben almacenarse directamente en el repositorio.
+No se deben almacenar en el repositorio:
 
-La configuracion local debe mantenerse en:
+* Contrasenas de usuarios.
+
+* Credenciales de la base de datos.
+
+* Secretos utilizados para firmar tokens JWT.
+
+* Tokens JWT.
+
+* Archivos de configuracion local que contengan informacion sensible.
+
+La configuracion sensible debe mantenerse en archivos locales o variables de entorno y debe excluirse del control de versiones.
+
+## Git
+
+Las ramas principales utilizadas durante el desarrollo son:
 
 ```text
-application-local.properties
+main
+
+sprint/01
+
+feature/backend-setup
+
+feature/database-connection
+
+feature/asset-crud
 ```
 
-Este archivo se encuentra excluido mediante `.gitignore`.
-
-Cada integrante debe utilizar sus propias credenciales de desarrollo y mantenerlas fuera del repositorio.
+Las funcionalidades nuevas deben desarrollarse preferiblemente en ramas `feature/*` y posteriormente integrarse mediante el flujo definido para el proyecto.
 
 ## Licencia
 
