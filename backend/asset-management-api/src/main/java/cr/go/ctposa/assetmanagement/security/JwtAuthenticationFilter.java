@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -50,6 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String email = claims.getSubject();
         String role = claims.get("role", String.class);
+        String permissions = claims.get("permissions", String.class);
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
@@ -59,17 +59,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             );
         }
 
-        Object permissionsClaim = claims.get("permissions");
+        if (permissions != null && !permissions.isBlank()) {
 
-        if (permissionsClaim instanceof Collection<?> permissions) {
+            String[] permissionList = permissions.split(",");
 
-            for (Object permission : permissions) {
+            for (String permission : permissionList) {
 
-                if (permission != null) {
+                String trimmedPermission = permission.trim();
+
+                if (!trimmedPermission.isBlank()) {
                     authorities.add(
-                            new SimpleGrantedAuthority(
-                                    permission.toString()
-                            )
+                            new SimpleGrantedAuthority(trimmedPermission)
                     );
                 }
             }
@@ -88,4 +88,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
