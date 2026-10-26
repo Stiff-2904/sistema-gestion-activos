@@ -2,6 +2,7 @@ package cr.go.ctposa.assetmanagement.config;
 
 import cr.go.ctposa.assetmanagement.security.JwtAuthenticationFilter;
 import cr.go.ctposa.assetmanagement.security.JwtService;
+import cr.go.ctposa.assetmanagement.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,22 +23,18 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(
-            JwtService jwtService) {
-
-        return new JwtAuthenticationFilter(jwtService);
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwtAuthenticationFilter)
+            JwtService jwtService,
+            UserRepository userRepository)
             throws Exception {
 
         http
             .csrf(csrf -> csrf.disable())
 
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/index.html", "/panel.html", "/crear-usuario.html",
+                        "/css/**", "/js/**", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
                 .anyRequest().authenticated()
             )
@@ -88,7 +85,7 @@ public class SecurityConfig {
             )
 
             .addFilterBefore(
-                jwtAuthenticationFilter,
+                new JwtAuthenticationFilter(jwtService, userRepository),
                 UsernamePasswordAuthenticationFilter.class
             );
 

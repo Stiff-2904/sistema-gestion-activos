@@ -20,7 +20,7 @@ public class UserController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('USER_CREATE') or hasAuthority('ALL')")
+    @PreAuthorize("hasRole('SUPERUSER')")
     public ResponseEntity<CreateUserResponse> createUser(
             @Valid @RequestBody CreateUserRequest request) {
 

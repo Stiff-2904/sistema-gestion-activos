@@ -74,6 +74,39 @@ class AuthServiceTest {
     }
 
     @Test
+    void login_UppercaseEmail_IsNormalized() {
+        loginRequest.setEmail("  JUAN@CTPOSA.AC.CR  ");
+        when(userRepository.findByEmail("juan@ctposa.ac.cr")).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches("123456", "hashed_password")).thenReturn(true);
+        when(jwtService.generateToken(mockUser)).thenReturn("token");
+
+        assertEquals("juan@ctposa.ac.cr", authService.login(loginRequest).getEmail());
+    }
+
+    @Test
+    void login_UnknownEmail_IsRejectedWithoutGeneratingToken() {
+        when(userRepository.findByEmail("juan@ctposa.ac.cr")).thenReturn(Optional.empty());
+        assertThrows(BadCredentialsException.class, () -> authService.login(loginRequest));
+        verifyNoInteractions(jwtService);
+    }
+
+    @Test
+    void currentUser_ReturnsUserWithoutToken() {
+        when(userRepository.findByEmail("juan@ctposa.ac.cr")).thenReturn(Optional.of(mockUser));
+        var actual = authService.currentUser("juan@ctposa.ac.cr");
+        assertEquals("Juan", actual.name());
+        assertEquals("BASIC_USER", actual.role());
+        verifyNoInteractions(jwtService);
+    }
+
+    @Test
+    void currentUser_InactiveUser_RejectsSession() {
+        mockUser.setActive(false);
+        when(userRepository.findByEmail("juan@ctposa.ac.cr")).thenReturn(Optional.of(mockUser));
+        assertThrows(BadCredentialsException.class, () -> authService.currentUser("juan@ctposa.ac.cr"));
+    }
+
+    @Test
     void login_InvalidPassword_ThrowsBadCredentialsException() {
         when(userRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(loginRequest.getPassword(), mockUser.getPasswordHash())).thenReturn(false);

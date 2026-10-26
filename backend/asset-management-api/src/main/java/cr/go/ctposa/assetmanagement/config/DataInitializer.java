@@ -72,6 +72,12 @@ public class DataInitializer {
             return;
         }
 
+        // Nunca crear un superusuario con credenciales vacías o por defecto.
+        if (superuserName.isBlank() || superuserEmail.isBlank() || superuserPassword.isBlank()) {
+            System.out.println("Sin superusuario bootstrap: configurar variables BOOTSTRAP_SUPERUSER_* para una BD vacia.");
+            return;
+        }
+
         Role superuserRole = roleRepository
                 .findByName("SUPERUSER")
                 .orElseThrow();

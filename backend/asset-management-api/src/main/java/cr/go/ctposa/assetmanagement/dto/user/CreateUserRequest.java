@@ -20,6 +20,7 @@ public class CreateUserRequest {
     private String password;
 
     @NotBlank(message = "El rol es obligatorio")
+    @Size(max = 50, message = "El rol no puede superar los 50 caracteres")
     private String role;
 
     public CreateUserRequest() {

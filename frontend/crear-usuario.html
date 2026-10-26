@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crear usuario | Sistema de Gestión de Activos</title>
+    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/crear-usuario.css" />
+    <script src="js/api.js" defer></script>
+    <script src="js/registro-validaciones.js" defer></script>
+    <script src="js/crear-usuario.js" defer></script>
+  </head>
+  <body>
+    <main class="pagina-login">
+      <section class="panel-institucional">
+        <div class="marca">
+          <div class="marca-icono" aria-hidden="true">▦</div>
+          <div><strong>SGA</strong><span>Portal institucional</span></div>
+        </div>
+        <div class="presentacion">
+          <p class="etiqueta">GESTIÓN DE USUARIOS</p>
+          <h1>Sistema de <span>Gestión de Activos</span></h1>
+          <p class="descripcion">Creación de cuentas autorizadas con un rol establecido por el superusuario.</p>
+        </div>
+        <div class="pie-institucional">ENTORNO DIGITAL INSTITUCIONAL</div>
+      </section>
+
+      <section class="panel-acceso">
+        <div class="tarjeta-login tarjeta-registro">
+          <div class="insignia"><span class="punto"></span> ADMINISTRACIÓN DE USUARIOS</div>
+          <h2>Registrar usuario</h2>
+          <p class="texto-secundario">Complete los datos y asigne el rol correspondiente. Todos los campos son obligatorios.</p>
+          <form id="formulario-registro" novalidate>
+            <div class="grupo-campo">
+              <label for="nombre">Nombre completo</label>
+              <input id="nombre" name="name" type="text" maxlength="100" autocomplete="name" placeholder="Ejemplo: Ana Pérez" aria-describedby="error-name" required />
+              <small id="error-name" class="error-campo" aria-live="polite"></small>
+            </div>
+            <div class="grupo-campo">
+              <label for="correo">Correo electrónico</label>
+              <input id="correo" name="email" type="email" maxlength="100" autocomplete="off" placeholder="Ejemplo: ana@institucion.cr" aria-describedby="error-email" required />
+              <small id="error-email" class="error-campo" aria-live="polite"></small>
+            </div>
+            <div class="grupo-campo">
+              <label for="clave">Contraseña</label>
+              <input id="clave" name="password" type="password" minlength="6" maxlength="100" autocomplete="new-password" placeholder="De 6 a 100 caracteres" aria-describedby="error-password" required />
+              <small id="error-password" class="error-campo" aria-live="polite"></small>
+            </div>
+            <div class="grupo-campo">
+              <label for="rol">Rol inicial</label>
+              <select id="rol" name="role" aria-describedby="error-role" required>
+                <option value="">Seleccione el rol</option>
+                <option value="SUPERUSER">Superusuario</option>
+                <option value="INTERMEDIATE_USER">Usuario intermedio</option>
+                <option value="BASIC_USER">Usuario básico</option>
+              </select>
+              <small id="error-role" class="error-campo" aria-live="polite"></small>
+            </div>
+            <div class="acciones-registro">
+              <button type="button" id="cancelar-registro" class="boton-cancelar">Cancelar</button>
+              <button type="submit" class="boton-login boton-validar" id="boton-registrar">Registrar usuario</button>
+            </div>
+            <p id="mensaje-registro" class="mensaje-formulario" role="status" aria-live="polite"></p>
+          </form>
+          <div class="pie-tarjeta">
+            <span>Uso exclusivo del superusuario</span>
+            <span>Sistema de Gestión de Activos</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

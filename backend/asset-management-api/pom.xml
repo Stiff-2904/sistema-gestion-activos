@@ -27,7 +27,7 @@
         <url/>
     </scm>
     <properties>
-        <java.version>25</java.version>
+        <java.version>21</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -103,6 +103,22 @@
     </dependencies>
 
     <build>
+        <!-- La copia de frontend se sirve desde Spring Boot en el MISMO origen.
+             Esto evita CORS y permite ejecutar la interfaz con un solo servidor. -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/../../frontend</directory>
+                <targetPath>static</targetPath>
+                <includes>
+                    <include>*.html</include>
+                    <include>css/**</include>
+                    <include>js/**</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

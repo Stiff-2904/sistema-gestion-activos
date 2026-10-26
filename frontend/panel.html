@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de acceso | Sistema de Gestión de Activos</title>
+  <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="css/crear-usuario.css" />
+  <script src="js/api.js" defer></script>
+  <script src="js/panel.js" defer></script>
+</head>
+<body>
+  <main class="pagina-login">
+    <section class="panel-institucional">
+      <div class="marca"><div class="marca-icono" aria-hidden="true">▦</div>
+        <div><strong>SGA</strong><span>Portal institucional</span></div></div>
+      <div class="presentacion"><p class="etiqueta">SESIÓN INICIADA</p>
+        <h1>Sistema de <span>Gestión de Activos</span></h1>
+        <p class="descripcion">Panel de acceso según su rol institucional.</p></div>
+      <div class="pie-institucional">ENTORNO DIGITAL INSTITUCIONAL</div>
+    </section>
+    <section class="panel-acceso">
+      <div class="tarjeta-login" id="panel-cuenta" hidden>
+        <div class="insignia"><span class="punto"></span> ACCESO AUTORIZADO</div>
+        <h2>Bienvenido</h2>
+        <p class="texto-secundario" id="datos-cuenta"></p>
+        <p class="texto-secundario" id="rol-cuenta"></p>
+        <a href="crear-usuario.html" id="enlace-registro" class="enlace-accion" hidden>Registrar nuevo usuario →</a>
+        <p class="texto-secundario">Las demás funcionalidades del sistema se incorporarán en siguientes módulos.</p>
+        <button type="button" id="cerrar-sesion" class="boton-cancelar boton-salir">Cerrar sesión</button>
+        <div class="pie-tarjeta"><span>Sistema de Gestión de Activos</span><span>Portal institucional</span></div>
+      </div>
+      <p id="estado-panel" role="status" aria-live="polite">Comprobando sesión...</p>
+    </section>
+  </main>
+</body>
+</html>

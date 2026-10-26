@@ -370,3 +370,5 @@ button:focus-visible {
     flex-direction: column;
   }
 }
+.mensaje-formulario.error { color: #9f2440; background: #fff1f4; padding: 12px; border-radius: 8px; }
+.boton-login:disabled { opacity: 0.7; cursor: wait; }

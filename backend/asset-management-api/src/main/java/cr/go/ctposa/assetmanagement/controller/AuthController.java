@@ -2,6 +2,8 @@ package cr.go.ctposa.assetmanagement.controller;
 
 import cr.go.ctposa.assetmanagement.dto.auth.LoginRequest;
 import cr.go.ctposa.assetmanagement.dto.auth.LoginResponse;
+import cr.go.ctposa.assetmanagement.dto.auth.CurrentUserResponse;
+import org.springframework.security.core.Authentication;
 import cr.go.ctposa.assetmanagement.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,11 @@ public class AuthController {
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<CurrentUserResponse> me(Authentication authentication) {
+        return ResponseEntity.ok(authService.currentUser(authentication.getName()));
     }
 
     @PostMapping("/login")
