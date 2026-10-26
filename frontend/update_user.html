@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Actualizar usuario | Sistema de Gestión de Activos</title>
+    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/crear-usuario.css" />
+    <script src="js/api.js" defer></script>
+    <script src="js/actualizar-usuario.js" defer></script>
+  </head>
+  <body>
+    <main class="pagina-login">
+      <section class="panel-institucional">
+        <div class="marca"><div class="marca-icono" aria-hidden="true">▦</div>
+          <div><strong>SGA</strong><span>Portal institucional</span></div></div>
+        <div class="presentacion"><p class="etiqueta">GESTIÓN DE USUARIOS</p>
+          <h1>Sistema de <span>Gestión de Activos</span></h1>
+          <p class="descripcion">Actualice los datos de un usuario. Los cambios quedan registrados en la auditoría.</p></div>
+        <div class="pie-institucional">ENTORNO DIGITAL INSTITUCIONAL</div>
+      </section>
+      <section class="panel-acceso">
+        <div class="tarjeta-login tarjeta-registro">
+          <div class="insignia"><span class="punto"></span> ADMINISTRACIÓN DE USUARIOS</div>
+          <h2>Actualizar usuario</h2>
+          <p class="texto-secundario">Ingrese el ID del usuario y sus datos actualizados. Deje la contraseña vacía para conservarla.</p>
+          <form id="formulario-actualizacion" novalidate>
+            <div class="grupo-campo"><label for="id-usuario">ID del usuario</label>
+              <input id="id-usuario" type="number" min="1" step="1" required placeholder="Ejemplo: 2" /></div>
+            <div class="grupo-campo"><label for="nombre">Nombre completo</label>
+              <input id="nombre" type="text" maxlength="100" required autocomplete="name" /></div>
+            <div class="grupo-campo"><label for="correo">Correo electrónico</label>
+              <input id="correo" type="email" maxlength="100" required autocomplete="off" /></div>
+            <div class="grupo-campo"><label for="clave">Nueva contraseña (opcional)</label>
+              <input id="clave" type="password" minlength="6" maxlength="100" autocomplete="new-password" placeholder="Vacío: conservar contraseña" /></div>
+            <div class="grupo-campo"><label for="rol">Rol</label>
+              <select id="rol" required>
+                <option value="">Seleccione el rol</option>
+                <option value="SUPERUSER">Superusuario</option>
+                <option value="INTERMEDIATE_USER">Usuario intermedio</option>
+                <option value="BASIC_USER">Usuario básico</option>
+              </select></div>
+            <div class="acciones-registro">
+              <button id="cancelar-actualizacion" class="boton-cancelar" type="button">Cancelar</button>
+              <button id="boton-actualizar" class="boton-login" type="submit">Guardar cambios</button>
+            </div>
+            <p id="mensaje-actualizacion" role="status" aria-live="polite" class="mensaje-formulario"></p>
+          </form>
+          <div class="pie-tarjeta"><span>Uso exclusivo del superusuario</span><span>Sistema de Gestión de Activos</span></div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

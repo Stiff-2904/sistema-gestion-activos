@@ -25,7 +25,8 @@ function runPage(page, { response, session } = {}) {
     'error-usuario','error-contrasena','mensaje-formulario',
     'formulario-registro','mensaje-registro','boton-registrar','nombre','correo','clave','rol',
     'error-name','error-email','error-password','error-role','cancelar-registro',
-    'datos-cuenta','rol-cuenta','enlace-registro','panel-cuenta','estado-panel','cerrar-sesion'];
+    'datos-cuenta','rol-cuenta','enlace-registro','enlace-actualizacion','panel-cuenta','estado-panel','cerrar-sesion',
+    'formulario-actualizacion','mensaje-actualizacion','boton-actualizar','cancelar-actualizacion','id-usuario'];
   const dom = Object.fromEntries(ids.map(id => [id, makeElement()]));
   const history = [];
   const calls = [];

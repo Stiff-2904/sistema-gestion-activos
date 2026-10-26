@@ -30,7 +30,7 @@ sistema-gestion-activos/
 
 El backend esta desarrollado con las siguientes tecnologias:
 
-* Java 25
+* Java 21
 
 * Spring Boot 4.1.1
 
@@ -54,7 +54,7 @@ El backend esta desarrollado con las siguientes tecnologias:
 
 Para ejecutar el backend se necesita:
 
-* JDK 25
+* JDK 21
 
 * NetBeans u otro IDE compatible con Maven
 
@@ -107,7 +107,7 @@ spring.datasource.password=CONTRASENA
 Desde NetBeans:
 
 1. Abrir el proyecto `asset-management-api`.
-2. Configurar el JDK 25.
+2. Configurar el JDK 21.
 3. Verificar la configuracion de la base de datos.
 4. Ejecutar el proyecto como aplicacion Spring Boot.
 
@@ -180,7 +180,7 @@ Endpoint:
 POST /api/v1/users
 ```
 
-Este endpoint requiere el permiso `USER_CREATE` o el permiso `ALL`.
+Este endpoint requiere el permiso rol `SUPERUSER`.
 
 Actualmente el rol `SUPERUSER` posee el permiso `ALL`, por lo que puede crear usuarios.
 
@@ -322,3 +322,23 @@ Las funcionalidades nuevas deben desarrollarse preferiblemente en ramas `feature
 ## Licencia
 
 Proyecto academico desarrollado para el CTP Osa.
+
+
+## Integración de actualización de usuarios (HU-GU-03)
+
+Se conserva la base `sistema-gestion-activos1.zip` y su estructura Java
+(config, controller, dto, exception, model, repository, security y service).
+La pantalla de actualización del otro proyecto fue adaptada a la interfaz,
+autenticación y auditoría de la versión base.
+
+- Entrar a `panel.html` con rol `SUPERUSER` y elegir **Actualizar usuario**.
+- Indicar ID, nombre, correo y rol; la contraseña es opcional.
+- `PUT /api/v1/users/{id}` requiere el rol `SUPERUSER`.
+- La actualización crea una entrada `UPDATE_USER` en la tabla `auditoria`
+  dentro de la misma transacción, sin guardar contraseñas ni sus hashes.
+- Si cambia su propia cuenta, el administrador debe iniciar sesión de nuevo.
+- Configurar `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET` como variables
+  del entorno antes de ejecutar la aplicación. Nunca publicar credenciales reales.
+
+Nota: Este archivo ZIP contiene exclusivamente el código fuente del proyecto;
+no incluye historial Git ni archivos de credenciales reales.

@@ -2,6 +2,7 @@ package cr.go.ctposa.assetmanagement.service;
 
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserResponse;
+import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRequest;
 import cr.go.ctposa.assetmanagement.model.Audit;
 import cr.go.ctposa.assetmanagement.model.Role;
 import cr.go.ctposa.assetmanagement.model.User;
@@ -110,5 +111,60 @@ public class UserService {
                 savedUser.getRole().getName(),
                 savedUser.getActive()
         );
+    }
+    /** HU-GU-03: actualizar usuario y guardar auditoría en una sola transacción. */
+    @Transactional
+    public CreateUserResponse updateUser(Integer id, UpdateUserRequest request) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("El usuario con el ID indicado no existe"));
+
+        String normalizedEmail = request.getEmail().trim().toLowerCase(Locale.ROOT);
+        if (!existing.getEmail().equals(normalizedEmail)) {
+            userRepository.findByEmail(normalizedEmail).ifPresent(another -> {
+                if (!another.getId().equals(existing.getId())) {
+                    throw new IllegalArgumentException("Ya existe otro usuario con ese correo");
+                }
+            });
+        }
+        Role newRole = roleRepository.findByName(request.getRole().trim())
+                .orElseThrow(() -> new IllegalArgumentException("El rol indicado no existe"));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getName() == null || authentication.getName().isBlank()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new IllegalStateException("No se pudo identificar al usuario que realiza la actualización");
+        }
+        User actor = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException(
+                        "No se encontro al usuario autenticado para auditoria"));
+
+        String oldEmail = existing.getEmail();
+        String oldRole = existing.getRole().getName();
+        boolean passwordChanged = request.getPassword() != null && !request.getPassword().isEmpty();
+
+        existing.setName(request.getName().trim());
+        existing.setEmail(normalizedEmail);
+        existing.setRole(newRole);
+        if (passwordChanged) {
+            existing.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
+        User saved = userRepository.save(existing);
+
+        Audit audit = new Audit();
+        audit.setUser(actor);
+        audit.setAction("UPDATE_USER");
+        audit.setAffectedTable("usuario");
+        audit.setDetails("Usuario actualizado: id=" + saved.getId()
+                + ", correo anterior=" + oldEmail
+                + ", correo nuevo=" + saved.getEmail()
+                + ", rol anterior=" + oldRole
+                + ", rol nuevo=" + newRole.getName()
+                + ", contrasena modificada=" + passwordChanged);
+        auditRepository.save(audit);
+
+        return new CreateUserResponse(
+                saved.getId(), saved.getName(), saved.getEmail(),
+                saved.getRole().getName(), saved.getActive());
     }
 }

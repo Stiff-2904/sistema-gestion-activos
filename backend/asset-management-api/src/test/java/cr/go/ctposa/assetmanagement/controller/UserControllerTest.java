@@ -2,6 +2,7 @@ package cr.go.ctposa.assetmanagement.controller;
 
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserResponse;
+import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRequest;
 import cr.go.ctposa.assetmanagement.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -35,5 +36,19 @@ class UserControllerTest {
         assertNotNull(preAuthorize);
         assertEquals("hasRole('SUPERUSER')", preAuthorize.value());
         // Verifica la configuración declarada, no reemplaza una prueba HTTP de seguridad.
+    }
+    @Test
+    void updateUser_Returns200_AndRequiresSuperuserRole() throws Exception {
+        UserService service = mock(UserService.class);
+        UpdateUserRequest request = new UpdateUserRequest();
+        CreateUserResponse expected = new CreateUserResponse(2,"Ana","ana@ctposa.ac.cr","BASIC_USER",true);
+        when(service.updateUser(2,request)).thenReturn(expected);
+        ResponseEntity<CreateUserResponse> response = new UserController(service).updateUser(2,request);
+        assertEquals(HttpStatus.OK,response.getStatusCode());
+        assertSame(expected,response.getBody());
+        Method method = UserController.class.getMethod("updateUser",Integer.class,UpdateUserRequest.class);
+        PreAuthorize security = method.getAnnotation(PreAuthorize.class);
+        assertNotNull(security);
+        assertEquals("hasRole('SUPERUSER')",security.value());
     }
 }

@@ -2,6 +2,7 @@ package cr.go.ctposa.assetmanagement.controller;
 
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserResponse;
+import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRequest;
 import cr.go.ctposa.assetmanagement.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -29,5 +30,13 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('SUPERUSER')")
+    public ResponseEntity<CreateUserResponse> updateUser(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdateUserRequest request) {
+        return ResponseEntity.ok(userService.updateUser(id, request));
     }
 }
