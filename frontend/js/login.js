@@ -1,71 +1,75 @@
-/* HU-GU-01: validar campos, autenticar por correo/contraseña y abrir panel. */
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   'use strict';
-  const usuario = document.getElementById('usuario');
-  const contrasena = document.getElementById('contrasena');
-  const mostrar = document.getElementById('mostrar-contrasena');
-  const boton = document.getElementById('boton-login');
-  const errorUsuario = document.getElementById('error-usuario');
-  const errorContrasena = document.getElementById('error-contrasena');
-  const mensaje = document.getElementById('mensaje-formulario');
-  const formulario = document.getElementById('formulario-login');
-  const api = window.SGAAPI;
 
-  function estado(texto = '', clase = '') {
-    mensaje.textContent = texto;
-    mensaje.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
-  }
-  function limpiar(campo, error) {
-    campo.classList.remove('campo-invalido');
-    campo.removeAttribute('aria-invalid');
-    error.textContent = '';
-    estado();
-  }
-  function invalido(campo, error, texto) {
-    campo.classList.add('campo-invalido');
-    campo.setAttribute('aria-invalid', 'true');
-    error.textContent = texto;
+  const form = document.getElementById('formulario-login');
+  const inputUsuario = document.getElementById('usuario');
+  const inputContrasena = document.getElementById('contrasena');
+  const btnLogin = document.getElementById('boton-login');
+  const mensajeFormulario = document.getElementById('mensaje-formulario');
+  const btnMostrar = document.getElementById('mostrar-contrasena');
+
+  if (btnMostrar && inputContrasena) {
+    btnMostrar.addEventListener('click', function () {
+      const tipo = inputContrasena.getAttribute('type') === 'password' ? 'text' : 'password';
+      inputContrasena.setAttribute('type', tipo);
+      btnMostrar.textContent = tipo === 'password' ? 'Mostrar' : 'Ocultar';
+      btnMostrar.setAttribute('aria-pressed', tipo === 'text');
+    });
   }
 
-  mostrar.addEventListener('click', function () {
-    const visible = contrasena.type === 'password';
-    contrasena.type = visible ? 'text' : 'password';
-    mostrar.textContent = visible ? 'Ocultar' : 'Mostrar';
-    mostrar.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
-    mostrar.setAttribute('aria-pressed', String(visible));
-  });
-  usuario.addEventListener('input', () => limpiar(usuario, errorUsuario));
-  contrasena.addEventListener('input', () => limpiar(contrasena, errorContrasena));
+  function mostrarMensaje(texto, clase = '') {
+    if (!mensajeFormulario) return;
+    mensajeFormulario.textContent = texto;
+    mensajeFormulario.className = 'mensaje-formulario ' + clase;
+  }
 
-  formulario.addEventListener('submit', async function (evento) {
-    evento.preventDefault();
-    limpiar(usuario, errorUsuario);
-    limpiar(contrasena, errorContrasena);
-    const correo = usuario.value.trim().toLowerCase();
-    if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-      invalido(usuario, errorUsuario, 'Ingrese un correo electrónico válido.');
-    }
-    if (!contrasena.value) {
-      invalido(contrasena, errorContrasena, 'Ingrese su contraseña.');
-    }
-    if (errorUsuario.textContent || errorContrasena.textContent) {
-      (errorUsuario.textContent ? usuario : contrasena).focus();
-      return;
-    }
+  if (form) {
+    form.addEventListener('submit', async function (evento) {
+      evento.preventDefault();
 
-    boton.disabled = true;
-    estado('Verificando credenciales...', 'informacion');
-    try {
-      const datos = await api.solicitud('/api/v1/auth/login', {
-        method: 'POST', body: { email: correo, password: contrasena.value },
-      });
-      api.guardarSesion(datos);
-      contrasena.value = '';
-      window.location.assign('panel.html');
-    } catch (error) {
-      // No revelar si el correo existe cuando las credenciales son incorrectas.
-      estado(error.status === 401
-        ? 'Correo o contraseña incorrectos, o cuenta inactiva.' : error.message, 'error');
-    } finally { boton.disabled = false; }
-  });
-})();
+      const email = inputUsuario.value.trim().toLowerCase();
+      const password = inputContrasena.value;
+
+      if (!email || !password) {
+        mostrarMensaje('Por favor, complete todos los campos.', 'error');
+        return;
+      }
+
+      if (btnLogin) btnLogin.disabled = true;
+      mostrarMensaje('Iniciando sesión...', 'informacion');
+
+      try {
+        const respuesta = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (!respuesta.ok) {
+          throw new Error('Credenciales inválidas o error en el servidor.');
+        }
+
+        const data = await respuesta.json();
+
+        localStorage.setItem('token', data.token || data.accessToken);
+        localStorage.setItem('usuario', JSON.stringify({
+          id: data.id || 1,
+          role: data.role || 'SUPERUSER',
+          email: email
+        }));
+
+        mostrarMensaje('¡Acceso concedido! Redirigiendo...', 'exito');
+
+        setTimeout(() => {
+          window.location.href = 'panel.html';
+        }, 800);
+
+      } catch (error) {
+        mostrarMensaje(error.message || 'Error al conectar con el servidor.', 'error');
+        if (btnLogin) btnLogin.disabled = false;
+      }
+    });
+  }
+});

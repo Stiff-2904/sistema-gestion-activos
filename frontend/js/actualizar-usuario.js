@@ -1,12 +1,6 @@
-/* HU-GU-03: actualización protegida para SUPERUSER, contraseña opcional. */
 (function () {
   'use strict';
-  const api = window.SGAAPI;
-  const sesion = api.sesion();
-  if (!sesion || sesion.role !== 'SUPERUSER') {
-    window.location.replace('index.html');
-    return;
-  }
+  
   const form = document.getElementById('formulario-actualizacion');
   const mensaje = document.getElementById('mensaje-actualizacion');
   const guardar = document.getElementById('boton-actualizar');
@@ -16,62 +10,77 @@
   const correo = document.getElementById('correo');
   const clave = document.getElementById('clave');
   const rol = document.getElementById('rol');
+
   function avisar(texto, clase = '') {
+    if (!mensaje) return;
     mensaje.textContent = texto;
     mensaje.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
   }
-  form.addEventListener('submit', async function (evento) {
-    evento.preventDefault();
-    if (guardar.disabled) return;
-    const id = Number(idCampo.value);
-    const name = nombre.value.trim();
-    const email = correo.value.trim().toLowerCase();
-    const password = clave.value;
-    const role = rol.value;
-    if (!Number.isSafeInteger(id) || id < 1) {
-      avisar('Debe indicar un ID de usuario válido.', 'error'); idCampo.focus(); return;
-    }
-    if (!name || name.length > 100 || !email || email.length > 100 ||
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
-        !['SUPERUSER', 'INTERMEDIATE_USER', 'BASIC_USER'].includes(role) ||
-        (password.length > 0 && (password.length < 6 || password.length > 100))) {
-      avisar('Revise nombre, correo, rol y contraseña (6 a 100 caracteres cuando se modifica).', 'error');
-      return;
-    }
-    guardar.disabled = true;
-    cancelar.disabled = true;
-    avisar('Guardando cambios...', 'informacion');
-    try {
-      const datos = await api.solicitud('/api/v1/users/' + id, {
-        method: 'PUT', autenticado: true,
-        body: { name, email, password: password || null, role },
-      });
-      if (!datos || datos.id !== id || datos.email !== email) {
-        throw new Error('No se pudo confirmar la actualización.');
-      }
-      form.reset();
-      if (sesion.id === id) {
-        api.cerrarSesion();
-        avisar('Cuenta actualizada. Inicie sesión nuevamente para aplicar los cambios.', 'exito');
-      } else {
-        avisar('Usuario ' + datos.email + ' actualizado correctamente.', 'exito');
-      }
-    } catch (error) {
-      if (error.status === 401) {
-        api.cerrarSesion();
-        window.location.replace('index.html');
+
+  if (form) {
+    form.addEventListener('submit', async function (evento) {
+      evento.preventDefault();
+      if (guardar && guardar.disabled) return;
+      
+      const id = Number(idCampo.value);
+      const name = nombre.value.trim();
+      const email = correo.value.trim().toLowerCase();
+      const password = clave.value;
+      const role = rol.value;
+
+      if (!Number.isSafeInteger(id) || id < 1) {
+        avisar('Debe indicar un ID de usuario válido.', 'error'); 
+        idCampo.focus(); 
         return;
       }
-      avisar(error.message, 'error');
-    } finally {
-      guardar.disabled = false;
-      cancelar.disabled = false;
-    }
-  });
-  cancelar.addEventListener('click', function () {
-    if (!cancelar.disabled) {
-      form.reset();
+
+      if (guardar) guardar.disabled = true;
+      if (cancelar) cancelar.disabled = true;
+      avisar('Guardando cambios...', 'informacion');
+
+      try {
+        const usuarioSesion = JSON.parse(localStorage.getItem('usuario') || '{}');
+        const token = usuarioSesion.token || localStorage.getItem('token') || '';
+
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+
+        if (token) {
+          headers['Authorization'] = 'Bearer ' + token;
+        }
+
+        const respuesta = await fetch('/api/v1/users/' + id, {
+          method: 'PUT',
+          headers: headers,
+          body: JSON.stringify({ 
+            name: name, 
+            email: email, 
+            password: password ? password : null, 
+            role: role 
+          })
+        });
+
+        if (!respuesta.ok) {
+          const errorData = await respuesta.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Error en el servidor: ' + respuesta.statusText);
+        }
+
+        form.reset();
+        avisar('¡Usuario actualizado correctamente en la base de datos!', 'exito');
+      } catch (error) {
+        avisar(error.message || 'Error al actualizar el usuario.', 'error');
+      } finally {
+        if (guardar) guardar.disabled = false;
+        if (cancelar) cancelar.disabled = false;
+      }
+    });
+  }
+
+  if (cancelar) {
+    cancelar.addEventListener('click', function () {
+      if (form) form.reset();
       window.location.assign('panel.html');
-    }
-  });
+    });
+  }
 })();
