@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const validator = require('../js/registro-validaciones.js');
+const validatorRol = require('../js/modificar-rol-validaciones.js');
 
 function makeElement() {
   const handlers = {};
@@ -26,7 +27,8 @@ function runPage(page, { response, session } = {}) {
     'formulario-registro','mensaje-registro','boton-registrar','nombre','correo','clave','rol',
     'error-name','error-email','error-password','error-role','cancelar-registro',
     'datos-cuenta','rol-cuenta','enlace-registro','enlace-actualizacion','panel-cuenta','estado-panel','cerrar-sesion',
-    'formulario-actualizacion','mensaje-actualizacion','boton-actualizar','cancelar-actualizacion','id-usuario'];
+    'formulario-actualizacion','mensaje-actualizacion','boton-actualizar','cancelar-actualizacion','id-usuario',
+    'formulario-rol','mensaje-rol','boton-modificar-rol','cancelar-rol','error-id','enlace-rol'];
   const dom = Object.fromEntries(ids.map(id => [id, makeElement()]));
   const history = [];
   const calls = [];
@@ -34,6 +36,7 @@ function runPage(page, { response, session } = {}) {
   if (session) storage.set('sga_sesion',JSON.stringify(session));
   const browser = {
     SGARegistroValidaciones: validator,
+    SGARolValidaciones: validatorRol,
     sessionStorage: {
       getItem: k => storage.get(k) || null,
       setItem: (k,v) => storage.set(k,v),

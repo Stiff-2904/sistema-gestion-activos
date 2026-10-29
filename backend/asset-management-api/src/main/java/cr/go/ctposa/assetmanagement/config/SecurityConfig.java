@@ -34,7 +34,7 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/index.html", "/panel.html", "/crear-usuario.html", "/update_user.html",
-                        "/css/**", "/js/**", "/favicon.ico", "/error").permitAll()
+                        "/modificar-rol.html", "/css/**", "/js/**", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
                 .anyRequest().authenticated()
             )

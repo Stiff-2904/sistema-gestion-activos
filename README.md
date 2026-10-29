@@ -283,6 +283,8 @@ Actualmente el backend cuenta con:
 
 * Almacenamiento seguro de contrasenas mediante BCrypt.
 
+* Modificacion del rol de un usuario mediante endpoint PATCH protegido (HU-GU-04).
+
 Las funcionalidades de gestion de activos, inventario, roles, permisos y auditoria continuaran implementandose por etapas.
 
 ## Seguridad
@@ -342,3 +344,130 @@ autenticación y auditoría de la versión base.
 
 Nota: Este archivo ZIP contiene exclusivamente el código fuente del proyecto;
 no incluye historial Git ni archivos de credenciales reales.
+
+
+## Modificacion de rol de usuario (HU-GU-04)
+
+Permite al superusuario cambiar el rol de una cuenta existente para administrar sus permisos.
+
+### Endpoint
+
+```http
+PATCH /api/v1/users/{id}/role
+```
+
+Requiere el rol `SUPERUSER` y el encabezado `Authorization: Bearer <TOKEN>`.
+
+Solicitud:
+
+```json
+{
+    "role": "INTERMEDIATE_USER"
+}
+```
+
+Respuesta exitosa:
+
+```http
+200 OK
+```
+
+```json
+{
+    "id": 2,
+    "name": "Juan Perez",
+    "email": "juan@ctposa.ac.cr",
+    "role": "INTERMEDIATE_USER",
+    "active": true
+}
+```
+
+| Codigo             | Cuando ocurre                                                                                  |
+| ------------------ | ---------------------------------------------------------------------------------------------- |
+| `200 OK`           | El rol se modifico correctamente                                                               |
+| `400 Bad Request`  | Rol vacio o inexistente, usuario inexistente, el usuario ya tiene ese rol o regla de CA04       |
+| `401 Unauthorized` | Falta el token o no es valido                                                                  |
+| `403 Forbidden`    | El usuario autenticado no es `SUPERUSER`                                                       |
+
+### Reglas de negocio
+
+* CA03: el rol es obligatorio y debe existir en la base de datos.
+
+* CA04: no se puede quitar el rol `SUPERUSER` al ultimo superusuario activo. El sistema responde `400` con el mensaje "No se puede cambiar el rol: el sistema debe conservar al menos un superusuario activo".
+
+* Si el usuario ya tiene el rol indicado se responde `400` y no se registra ningun cambio.
+
+* Un superusuario puede cambiar su propio rol siempre que exista otro superusuario activo. El filtro JWT consulta el rol en la base de datos, por lo que el cambio aplica de inmediato.
+
+### Trazabilidad
+
+Cada cambio guarda un registro en la tabla `auditoria` dentro de la misma transaccion:
+
+* `accion`: `UPDATE_USER_ROLE`
+
+* `tabla_afectada`: `usuario`
+
+* `id_usuario`: superusuario que realizo la accion
+
+* `detalles`: ID y correo del usuario modificado, rol anterior y rol nuevo
+
+* `fecha_hora`: la asigna MySQL con `CURRENT_TIMESTAMP`
+
+### Interfaz
+
+La pantalla `modificar-rol.html` se abre desde el panel con **Modificar rol de usuario** y usa los mismos estilos que el resto de pantallas (`css/login.css` y `css/crear-usuario.css`).
+
+* Se indica el ID del usuario y se elige el nuevo rol de una lista (Superusuario, Usuario intermedio, Usuario basico).
+
+* CA03: si no se selecciona un rol se muestra el error y no se envia nada al servidor.
+
+* CA02: **Cancelar** descarta los datos, no envia ninguna solicitud y vuelve al panel.
+
+* CA04: el mensaje de rechazo del servidor se muestra en pantalla.
+
+* Sin sesion se redirige a `index.html`. Si el usuario no es `SUPERUSER` se redirige a `panel.html`.
+
+* Si el superusuario cambia el rol de su propia cuenta, se cierra la sesion y debe iniciar sesion nuevamente.
+
+### Archivos nuevos o modificados
+
+```text
+backend/.../controller/UserController.java              (nuevo metodo updateUserRole)
+backend/.../service/UserService.java                    (nuevo metodo updateUserRole)
+backend/.../repository/UserRepository.java             (countByRoleNameAndActive)
+backend/.../dto/user/UpdateUserRoleRequest.java         (nuevo)
+backend/.../config/SecurityConfig.java                  (se permite /modificar-rol.html)
+frontend/modificar-rol.html                             (nuevo)
+frontend/js/modificar-rol.js                            (nuevo)
+frontend/js/modificar-rol-validaciones.js               (nuevo)
+frontend/panel.html y frontend/js/panel.js              (enlace a la nueva pantalla)
+```
+
+### Pruebas unitarias
+
+Backend (JUnit 5 y Mockito, sin base de datos):
+
+```powershell
+.\mvnw.cmd test
+```
+
+* `UpdateUserRoleServiceTest`: CA01, CA03 y CA04 sobre `UserService.updateUserRole()`.
+
+* `UpdateUserRoleRequestTest`: CA01 y CA03 sobre la validacion del rol.
+
+* `UserRoleControllerTest`: respuesta 200, endpoint PATCH protegido y respuesta 400 de CA04.
+
+Frontend (Node.js 18 o superior, sin navegador), desde la carpeta `frontend`:
+
+```powershell
+node --test tests/modificar-rol.test.cjs
+```
+
+Para ejecutar todas las pruebas del frontend: `node --test tests/*.test.cjs`.
+
+| Criterio | Backend | Frontend |
+| -------- | ------- | -------- |
+| CA01 Cambio de rol exitoso | si | si |
+| CA02 Cancelacion | no aplica | si |
+| CA03 No se selecciona un rol | si | si |
+| CA04 Intento de dejar el sistema sin superusuarios | si | si |

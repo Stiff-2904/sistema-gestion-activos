@@ -3,6 +3,7 @@ package cr.go.ctposa.assetmanagement.service;
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserResponse;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRequest;
+import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRoleRequest;
 import cr.go.ctposa.assetmanagement.model.Audit;
 import cr.go.ctposa.assetmanagement.model.Role;
 import cr.go.ctposa.assetmanagement.model.User;
@@ -19,6 +20,8 @@ import java.util.Locale;
 
 @Service
 public class UserService {
+
+    private static final String SUPERUSER_ROLE = "SUPERUSER";
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -161,6 +164,65 @@ public class UserService {
                 + ", rol anterior=" + oldRole
                 + ", rol nuevo=" + newRole.getName()
                 + ", contrasena modificada=" + passwordChanged);
+        auditRepository.save(audit);
+
+        return new CreateUserResponse(
+                saved.getId(), saved.getName(), saved.getEmail(),
+                saved.getRole().getName(), saved.getActive());
+    }
+
+    /** HU-GU-04: modificar solo el rol de un usuario y guardar auditoria en una sola transaccion. */
+    @Transactional
+    public CreateUserResponse updateUserRole(Integer id, UpdateUserRoleRequest request) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El usuario con el ID indicado no existe"));
+
+        // CA03: el rol enviado debe existir en la base de datos.
+        Role newRole = roleRepository.findByName(request.getRole().trim())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El rol indicado no existe"));
+
+        String oldRole = existing.getRole().getName();
+        if (oldRole.equals(newRole.getName())) {
+            throw new IllegalArgumentException(
+                    "El usuario ya tiene asignado ese rol");
+        }
+
+        // CA04: si se le quita el rol al ultimo superusuario activo,
+        // el sistema quedaria sin nadie que administre los permisos.
+        boolean losesSuperuser = SUPERUSER_ROLE.equals(oldRole)
+                && !SUPERUSER_ROLE.equals(newRole.getName())
+                && Boolean.TRUE.equals(existing.getActive());
+        if (losesSuperuser
+                && userRepository.countByRoleNameAndActive(SUPERUSER_ROLE, true) <= 1) {
+            throw new IllegalArgumentException(
+                    "No se puede cambiar el rol: el sistema debe conservar al menos un superusuario activo");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getName() == null || authentication.getName().isBlank()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new IllegalStateException(
+                    "No se pudo identificar al usuario que realiza el cambio de rol");
+        }
+        User actor = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException(
+                        "No se encontro al usuario autenticado para auditoria"));
+
+        existing.setRole(newRole);
+        User saved = userRepository.save(existing);
+
+        // La fecha y hora exactas las asigna MySQL con el DEFAULT CURRENT_TIMESTAMP de la tabla.
+        Audit audit = new Audit();
+        audit.setUser(actor);
+        audit.setAction("UPDATE_USER_ROLE");
+        audit.setAffectedTable("usuario");
+        audit.setDetails("Rol de usuario modificado: id=" + saved.getId()
+                + ", correo=" + saved.getEmail()
+                + ", rol anterior=" + oldRole
+                + ", rol nuevo=" + newRole.getName());
         auditRepository.save(audit);
 
         return new CreateUserResponse(

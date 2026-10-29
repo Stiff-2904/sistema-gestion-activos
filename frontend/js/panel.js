@@ -16,6 +16,8 @@
       document.getElementById('rol-cuenta').textContent = 'Rol: ' + usuario.role;
       document.getElementById('enlace-registro').hidden = usuario.role !== 'SUPERUSER';
       document.getElementById('enlace-actualizacion').hidden = usuario.role !== 'SUPERUSER';
+      const enlaceRol = document.getElementById('enlace-rol');
+      if (enlaceRol) enlaceRol.hidden = usuario.role !== 'SUPERUSER';
       document.getElementById('panel-cuenta').hidden = false;
       document.getElementById('estado-panel').hidden = true;
     } catch (error) {

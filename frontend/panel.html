@@ -251,6 +251,8 @@
         .btn-danger-outline:hover {
             background: #fff1f2;
         }
+        [hidden] { display: none !important; }
+        .role-badge:empty { display: none; }
     </style>
 </head>
 <body>
@@ -283,21 +285,26 @@
         <div class="panel-container-flat">
             <div class="card-header-top">
                 <h1 class="welcome-title">Bienvenido</h1>
-                <div class="role-badge">Rol: SUPERUSER</div>
+                <div class="role-badge" id="rol-cuenta"></div>
             </div>
 
             <div class="badge-authorized">Acceso Autorizado</div>
+
+            <p class="system-note" id="estado-panel">Verificando sesión...</p>
             
-            <div class="user-meta">Superusuario Pruebas · superuser.pruebas@example.com</div>
+            <div id="panel-cuenta" hidden>
+            <div class="user-meta" id="datos-cuenta"></div>
 
             <div class="action-grid">
-                <a href="/crear-usuario.html" class="btn btn-primary">Registrar nuevo usuario →</a>
-                <a href="/update_user.html" class="btn btn-outline">Actualizar usuario →</a>
+                <a href="/crear-usuario.html" id="enlace-registro" class="btn btn-primary">Registrar nuevo usuario →</a>
+                <a href="/update_user.html" id="enlace-actualizacion" class="btn btn-outline">Actualizar usuario →</a>
+                <a href="/modificar-rol.html" id="enlace-rol" class="btn btn-outline" style="grid-column: span 2;">Modificar rol de usuario &rarr;</a>
             </div>
 
             <p class="system-note">Las demás funcionalidades del sistema se incorporarán en siguientes módulos.</p>
 
-            <a href="/index.html" class="btn-danger-outline">Cerrar sesión</a>
+            <a href="/index.html" id="cerrar-sesion" class="btn-danger-outline">Cerrar sesión</a>
+            </div>
 
             <div class="card-footer" style="margin-top: 1.5rem;">
                 <span>Sistema de Gestión de Activos</span>
@@ -306,25 +313,7 @@
         </div>
     </main>
 
-    <script>
-        if (!window.SGAAPI) {
-            window.SGAAPI = {
-                sesion: function() {
-                    let s = localStorage.getItem('usuario');
-                    if (!s) {
-                        const def = { id: 1, role: 'SUPERUSER', email: 'superuser.pruebas@example.com' };
-                        localStorage.setItem('usuario', JSON.stringify(def));
-                        return def;
-                    }
-                    return JSON.parse(s);
-                },
-                cerrarSesion: function() {
-                    localStorage.removeItem('usuario');
-                }
-            };
-        }
-        window.SGAAPI.sesion();
-    </script>
+    <script src="/js/api.js"></script>
     <script src="/js/panel.js"></script>
 </body>
 </html>

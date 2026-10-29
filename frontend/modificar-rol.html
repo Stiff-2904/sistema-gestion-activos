@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modificar rol | Sistema de Gestion de Activos</title>
+    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/crear-usuario.css" />
+    <script src="js/api.js" defer></script>
+    <script src="js/modificar-rol-validaciones.js" defer></script>
+    <script src="js/modificar-rol.js" defer></script>
+  </head>
+  <body>
+    <main class="pagina-login">
+      <section class="panel-institucional">
+        <div class="marca">
+          <div class="marca-icono" aria-hidden="true">&#9638;</div>
+          <div><strong>SGA</strong><span>Portal institucional</span></div>
+        </div>
+        <div class="presentacion">
+          <p class="etiqueta">GESTION DE USUARIOS</p>
+          <h1>Sistema de <span>Gestion de Activos</span></h1>
+          <p class="descripcion">Modificacion del rol de una cuenta existente para administrar correctamente sus permisos en el sistema.</p>
+        </div>
+        <div class="pie-institucional">ENTORNO DIGITAL INSTITUCIONAL</div>
+      </section>
+
+      <section class="panel-acceso">
+        <div class="tarjeta-login tarjeta-registro">
+          <div class="insignia"><span class="punto"></span> ADMINISTRACION DE USUARIOS</div>
+          <h2>Modificar rol de usuario</h2>
+          <p class="texto-secundario">Indique el ID del usuario y seleccione el nuevo rol de la lista. Todos los campos son obligatorios.</p>
+          <form id="formulario-rol" novalidate>
+            <div class="grupo-campo">
+              <label for="id-usuario">ID del usuario</label>
+              <input id="id-usuario" name="id" type="number" min="1" step="1" autocomplete="off" placeholder="Ejemplo: 2" aria-describedby="error-id" required />
+              <small id="error-id" class="error-campo" aria-live="polite"></small>
+            </div>
+            <div class="grupo-campo">
+              <label for="rol">Nuevo rol</label>
+              <select id="rol" name="role" aria-describedby="error-role" required>
+                <option value="">Seleccione el rol</option>
+                <option value="SUPERUSER">Superusuario</option>
+                <option value="INTERMEDIATE_USER">Usuario intermedio</option>
+                <option value="BASIC_USER">Usuario basico</option>
+              </select>
+              <small id="error-role" class="error-campo" aria-live="polite"></small>
+            </div>
+            <div class="acciones-registro">
+              <button type="button" id="cancelar-rol" class="boton-cancelar">Cancelar</button>
+              <button type="submit" class="boton-login boton-validar" id="boton-modificar-rol">Modificar rol</button>
+            </div>
+            <p id="mensaje-rol" class="mensaje-formulario" role="status" aria-live="polite"></p>
+          </form>
+          <div class="pie-tarjeta">
+            <span>Uso exclusivo del superusuario</span>
+            <span>Sistema de Gestion de Activos</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

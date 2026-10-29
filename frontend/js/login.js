@@ -1,75 +1,67 @@
-document.addEventListener('DOMContentLoaded', function () {
+/* HU-GU-01: inicio de sesion contra el backend y creacion de la sesion con SGAAPI. */
+(function () {
   'use strict';
+  const api = window.SGAAPI;
+  const formulario = document.getElementById('formulario-login');
+  const usuario = document.getElementById('usuario');
+  const contrasena = document.getElementById('contrasena');
+  const boton = document.getElementById('boton-login');
+  const aviso = document.getElementById('mensaje-formulario');
+  const mostrar = document.getElementById('mostrar-contrasena');
+  const errorUsuario = document.getElementById('error-usuario');
+  const errorContrasena = document.getElementById('error-contrasena');
+  const formatoCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const form = document.getElementById('formulario-login');
-  const inputUsuario = document.getElementById('usuario');
-  const inputContrasena = document.getElementById('contrasena');
-  const btnLogin = document.getElementById('boton-login');
-  const mensajeFormulario = document.getElementById('mensaje-formulario');
-  const btnMostrar = document.getElementById('mostrar-contrasena');
-
-  if (btnMostrar && inputContrasena) {
-    btnMostrar.addEventListener('click', function () {
-      const tipo = inputContrasena.getAttribute('type') === 'password' ? 'text' : 'password';
-      inputContrasena.setAttribute('type', tipo);
-      btnMostrar.textContent = tipo === 'password' ? 'Mostrar' : 'Ocultar';
-      btnMostrar.setAttribute('aria-pressed', tipo === 'text');
-    });
+  function mensaje(texto = '', clase = '') {
+    aviso.textContent = texto;
+    aviso.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
+  }
+  function limpiar() {
+    mensaje();
+    errorUsuario.textContent = '';
+    errorContrasena.textContent = '';
+    usuario.classList.remove('campo-invalido');
+    contrasena.classList.remove('campo-invalido');
   }
 
-  function mostrarMensaje(texto, clase = '') {
-    if (!mensajeFormulario) return;
-    mensajeFormulario.textContent = texto;
-    mensajeFormulario.className = 'mensaje-formulario ' + clase;
-  }
+  mostrar.addEventListener('click', function () {
+    const tipo = contrasena.type === 'password' ? 'text' : 'password';
+    contrasena.type = tipo;
+    mostrar.textContent = tipo === 'password' ? 'Mostrar' : 'Ocultar';
+    mostrar.setAttribute('aria-pressed', String(tipo === 'text'));
+  });
 
-  if (form) {
-    form.addEventListener('submit', async function (evento) {
-      evento.preventDefault();
+  formulario.addEventListener('submit', async function (evento) {
+    evento.preventDefault();
+    if (boton.disabled) return;
+    limpiar();
+    const email = usuario.value.trim().toLowerCase();
+    const password = contrasena.value;
+    let valido = true;
+    if (!formatoCorreo.test(email)) {
+      errorUsuario.textContent = 'Ingrese un correo electrónico válido.';
+      usuario.classList.add('campo-invalido');
+      valido = false;
+    }
+    if (!password) {
+      errorContrasena.textContent = 'Ingrese su contraseña.';
+      contrasena.classList.add('campo-invalido');
+      valido = false;
+    }
+    if (!valido) return;
 
-      const email = inputUsuario.value.trim().toLowerCase();
-      const password = inputContrasena.value;
-
-      if (!email || !password) {
-        mostrarMensaje('Por favor, complete todos los campos.', 'error');
-        return;
-      }
-
-      if (btnLogin) btnLogin.disabled = true;
-      mostrarMensaje('Iniciando sesión...', 'informacion');
-
-      try {
-        const respuesta = await fetch('/api/v1/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, password })
-        });
-
-        if (!respuesta.ok) {
-          throw new Error('Credenciales inválidas o error en el servidor.');
-        }
-
-        const data = await respuesta.json();
-
-        localStorage.setItem('token', data.token || data.accessToken);
-        localStorage.setItem('usuario', JSON.stringify({
-          id: data.id || 1,
-          role: data.role || 'SUPERUSER',
-          email: email
-        }));
-
-        mostrarMensaje('¡Acceso concedido! Redirigiendo...', 'exito');
-
-        setTimeout(() => {
-          window.location.href = 'panel.html';
-        }, 800);
-
-      } catch (error) {
-        mostrarMensaje(error.message || 'Error al conectar con el servidor.', 'error');
-        if (btnLogin) btnLogin.disabled = false;
-      }
-    });
-  }
-});
+    boton.disabled = true;
+    mensaje('Iniciando sesion...', 'informacion');
+    try {
+      const datos = await api.solicitud('/api/v1/auth/login', {
+        method: 'POST', body: { email, password },
+      });
+      api.guardarSesion(datos);
+      contrasena.value = '';
+      window.location.assign('panel.html');
+    } catch (error) {
+      mensaje(error.status === 401 ? 'Correo o contraseña incorrectos.' : error.message, 'error');
+      boton.disabled = false;
+    }
+  });
+})();
