@@ -4,6 +4,7 @@ import cr.go.ctposa.assetmanagement.dto.user.CreateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserResponse;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRoleRequest;
+import cr.go.ctposa.assetmanagement.dto.user.UpdateUserStatusRequest;
 import cr.go.ctposa.assetmanagement.model.Audit;
 import cr.go.ctposa.assetmanagement.model.Role;
 import cr.go.ctposa.assetmanagement.model.User;
@@ -228,5 +229,78 @@ public class UserService {
         return new CreateUserResponse(
                 saved.getId(), saved.getName(), saved.getEmail(),
                 saved.getRole().getName(), saved.getActive());
+    }
+    /** HU-GU-05: se devuelve la cuenta sin exponer la contrasena ni su hash. */
+    @Transactional(readOnly = true)
+    public CreateUserResponse getUserStatus(Integer id) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El usuario con el ID indicado no existe"));
+        return new CreateUserResponse(existing.getId(), existing.getName(),
+                existing.getEmail(), existing.getRole().getName(), existing.getActive());
+    }
+
+    /** HU-GU-05: actualiza el estado y registra la auditoria de modo atomico. */
+    @Transactional
+    public CreateUserResponse updateUserStatus(Integer id, UpdateUserStatusRequest request) {
+        if (request == null || request.getActive() == null) {
+            throw new IllegalArgumentException("Debe indicar el estado del usuario");
+        }
+        if (request.getReason() == null || request.getReason().isBlank()) {
+            throw new IllegalArgumentException("Debe indicar un motivo para el cambio de estado");
+        }
+        String reason = request.getReason().trim();
+        if (reason.length() > 500) {
+            throw new IllegalArgumentException("El motivo no puede superar los 500 caracteres");
+        }
+
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El usuario con el ID indicado no existe"));
+        boolean previousStatus = Boolean.TRUE.equals(existing.getActive());
+        boolean requestedStatus = request.getActive();
+        if (previousStatus == requestedStatus) {
+            throw new IllegalArgumentException(requestedStatus
+                    ? "El usuario ya se encuentra activo"
+                    : "El usuario ya se encuentra inactivo");
+        }
+
+        // Nunca permitir que el sistema quede sin un SUPERUSER activo.
+        if (previousStatus && !requestedStatus
+                && existing.getRole() != null
+                && SUPERUSER_ROLE.equals(existing.getRole().getName())
+                && userRepository.countByRoleNameAndActive(SUPERUSER_ROLE, true) <= 1) {
+            throw new IllegalArgumentException(
+                    "No se puede inactivar al ultimo superusuario activo");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getName() == null || authentication.getName().isBlank()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new IllegalStateException(
+                    "No se pudo identificar al usuario que realiza el cambio de estado");
+        }
+        User actor = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException(
+                        "No se encontro al usuario autenticado para auditoria"));
+
+        existing.setActive(requestedStatus);
+        User saved = userRepository.save(existing);
+
+        Audit audit = new Audit();
+        audit.setUser(actor);
+        audit.setAction(requestedStatus ? "ACTIVATE_USER" : "DEACTIVATE_USER");
+        audit.setAffectedTable("usuario");
+        // La base de datos asigna la fecha/hora mediante DEFAULT CURRENT_TIMESTAMP.
+        audit.setDetails("Cambio de estado de usuario: id=" + saved.getId()
+                + ", correo=" + saved.getEmail()
+                + ", estado anterior=" + (previousStatus ? "activo" : "inactivo")
+                + ", estado nuevo=" + (requestedStatus ? "activo" : "inactivo")
+                + ", motivo=" + reason);
+        auditRepository.save(audit);
+
+        return new CreateUserResponse(saved.getId(), saved.getName(),
+                saved.getEmail(), saved.getRole().getName(), saved.getActive());
     }
 }

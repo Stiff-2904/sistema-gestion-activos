@@ -4,6 +4,7 @@ import cr.go.ctposa.assetmanagement.dto.user.CreateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserResponse;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRoleRequest;
+import cr.go.ctposa.assetmanagement.dto.user.UpdateUserStatusRequest;
 import cr.go.ctposa.assetmanagement.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -47,5 +48,20 @@ public class UserController {
             @PathVariable Integer id,
             @Valid @RequestBody UpdateUserRoleRequest request) {
         return ResponseEntity.ok(userService.updateUserRole(id, request));
+    }
+    /** HU-GU-05: consultar el estado REAL de la cuenta antes de mostrar la accion. */
+    @GetMapping("/{id}/status")
+    @PreAuthorize("hasRole('SUPERUSER')")
+    public ResponseEntity<CreateUserResponse> getUserStatus(@PathVariable Integer id) {
+        return ResponseEntity.ok(userService.getUserStatus(id));
+    }
+
+    /** HU-GU-05: activar o inactivar sin borrar datos personales. */
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('SUPERUSER')")
+    public ResponseEntity<CreateUserResponse> updateUserStatus(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdateUserStatusRequest request) {
+        return ResponseEntity.ok(userService.updateUserStatus(id, request));
     }
 }

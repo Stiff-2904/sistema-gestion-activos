@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Activar o inactivar usuarios | Sistema de Gestion de Activos</title>
+  <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="css/crear-usuario.css" />
+  <style>
+    .tarjeta-estado { max-width: 540px; }
+    .ficha-usuario { background: #f1f6fa; border: 1px solid #cbdbe6; padding: 15px; border-radius: 9px; margin: 15px 0; }
+    .ficha-usuario strong { display: block; margin-bottom: 7px; }
+    .ficha-usuario p { margin: 5px 0; overflow-wrap: anywhere; }
+    .estado-activo { color: #166534; font-weight: 700; }
+    .estado-inactivo { color: #9f2440; font-weight: 700; }
+    .grupo-campo textarea { display: block; width: 100%; min-height: 98px; resize: vertical; padding: 12px; border: 1px solid #d6e0e8; border-radius: 9px; font: inherit; }
+    .grupo-campo textarea:focus { outline: none; border-color: #168ab8; }
+    .grupo-campo textarea.campo-invalido { border-color: #cf526a; }
+    .boton-consultar { border: 1px solid #157aa9; background: #e8f5fc; color: #075c85; border-radius: 9px; cursor: pointer; padding: 12px 16px; font-weight: 700; }
+    .boton-consultar:disabled { opacity: .6; cursor: wait; }
+    #boton-estado:disabled { opacity: .65; cursor: wait; }
+    [hidden] { display: none !important; }
+  </style>
+  <script src="js/api.js" defer></script>
+  <script src="js/estado-usuario.js" defer></script>
+</head>
+<body>
+  <main class="pagina-login">
+    <section class="panel-institucional">
+      <div class="marca"><div class="marca-icono" aria-hidden="true">&#9638;</div><div><strong>SGA</strong><span>Portal institucional</span></div></div>
+      <div class="presentacion"><p class="etiqueta">GESTION DE USUARIOS</p><h1>Sistema de <span>Gestion de Activos</span></h1>
+        <p class="descripcion">Active o inactive cuentas sin eliminar su informacion. Solo disponible para el superusuario.</p></div>
+      <div class="pie-institucional">ENTORNO DIGITAL INSTITUCIONAL</div>
+    </section>
+    <section class="panel-acceso">
+      <div class="tarjeta-login tarjeta-registro tarjeta-estado">
+        <div class="insignia"><span class="punto"></span> ADMINISTRACION DE ACCESOS</div>
+        <h2>Activar o inactivar usuario</h2>
+        <p class="texto-secundario">Consulte la cuenta por ID. Se mostrara exclusivamente la accion permitida segun su estado actual.</p>
+        <form id="formulario-estado" novalidate>
+          <div class="grupo-campo">
+            <label for="id-usuario">ID del usuario</label>
+            <input id="id-usuario" type="number" min="1" step="1" placeholder="Ejemplo: 2" autocomplete="off" aria-describedby="error-id" required />
+            <small id="error-id" class="error-campo" aria-live="polite"></small>
+          </div>
+          <button id="consultar-estado" type="button" class="boton-consultar">Consultar usuario</button>
+          <div id="ficha-usuario" class="ficha-usuario" hidden aria-live="polite">
+            <strong id="nombre-usuario"></strong>
+            <p id="correo-usuario"></p>
+            <p>Rol: <span id="rol-usuario"></span></p>
+            <p>Estado actual: <span id="estado-actual"></span></p>
+          </div>
+          <div id="seccion-cambio" hidden>
+            <div class="grupo-campo">
+              <label for="motivo-estado">Motivo del cambio <span aria-hidden="true">*</span></label>
+              <textarea id="motivo-estado" maxlength="500" rows="3" placeholder="Explique por que se activa o inactiva esta cuenta" aria-describedby="error-motivo" required></textarea>
+              <small id="error-motivo" class="error-campo" aria-live="polite"></small>
+            </div>
+            <div class="acciones-registro">
+              <button id="cancelar-estado" type="button" class="boton-cancelar">Cancelar</button>
+              <button id="boton-estado" type="submit" class="boton-login boton-validar">Cambiar estado</button>
+            </div>
+          </div>
+          <p id="mensaje-estado" class="mensaje-formulario" role="status" aria-live="polite"></p>
+        </form>
+        <div class="pie-tarjeta"><span>Uso exclusivo del superusuario</span><a href="panel.html">Volver al panel</a></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

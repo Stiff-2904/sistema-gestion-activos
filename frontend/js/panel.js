@@ -18,6 +18,8 @@
       document.getElementById('enlace-actualizacion').hidden = usuario.role !== 'SUPERUSER';
       const enlaceRol = document.getElementById('enlace-rol');
       if (enlaceRol) enlaceRol.hidden = usuario.role !== 'SUPERUSER';
+      const enlaceEstado = document.getElementById('enlace-estado');
+      if (enlaceEstado) enlaceEstado.hidden = usuario.role !== 'SUPERUSER';
       document.getElementById('panel-cuenta').hidden = false;
       document.getElementById('estado-panel').hidden = true;
     } catch (error) {
