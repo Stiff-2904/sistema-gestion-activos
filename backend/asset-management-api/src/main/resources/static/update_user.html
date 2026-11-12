@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Actualizar usuario | Sistema de Gestión de Activos</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/actualizar-usuario.js" defer></script>
+</head>
+<body class="app-page">
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Menú principal">
+    <a href="panel.html" class="brand"><span class="brand-mark" aria-hidden="true">S</span><span><strong>SGA · CTP Osa</strong><small>Plataforma institucional</small></span></a>
+    <div class="sidebar-label">NAVEGACIÓN</div>
+    <nav class="nav-list" aria-label="Administración de usuarios"><a href="panel.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">▦</span>Panel principal</a>
+<a href="crear-usuario.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">＋</span>Registrar usuario</a>
+<a href="update_user.html" class="nav-link active" aria-current="page"><span class="nav-icon" aria-hidden="true">✎</span>Actualizar datos</a>
+<a href="modificar-rol.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">♙</span>Modificar roles</a>
+<a href="estado-usuario.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">◉</span>Estados y eliminación</a></nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-tip"><span class="tip-icon" aria-hidden="true">✦</span><strong>Gestión responsable</strong><p>Compruebe la información y los permisos antes de guardar cualquier modificación.</p></div>
+      <div class="sidebar-footer">SISTEMA DE GESTIÓN DE ACTIVOS<br>ENTORNO INSTITUCIONAL</div>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div class="breadcrumb"><span>Inicio</span><span>›</span><span>Gestión de usuarios</span><span>›</span><strong>Actualizar usuario</strong></div><div class="topbar-right"><span class="topbar-status">Portal seguro</span><a class="topbar-link" href="panel.html">Volver al panel</a></div></header>
+    <main class="workspace-main">
+      <div class="page-intro"><div><div class="eyebrow">MÓDULO DE USUARIOS</div><h1>Actualizar usuario</h1><p>Mantenga la información institucional correcta y actualizada.</p></div><span class="intro-symbol" aria-hidden="true">✎</span></div>
+      <div class="two-column"><section class="card"><div class="card-head"><h2>Información que desea actualizar</h2><p>Indique el identificador de la cuenta y sus datos completos para guardar la actualización.</p></div><div class="card-body">
+<form id="formulario-actualizacion" novalidate><div class="form-grid">
+<div class="grupo-campo full"><label for="id-usuario">ID del usuario *</label><input type="number" id="id-usuario" name="id" min="1" step="1" placeholder="Ejemplo: 2" required><span class="field-hint">Puede encontrar este número en el registro del usuario.</span></div>
+<div class="grupo-campo"><label for="nombre">Nombre completo *</label><input type="text" id="nombre" name="nombre" maxlength="100" placeholder="Nombre completo" required></div>
+<div class="grupo-campo"><label for="correo">Correo electrónico *</label><input type="email" id="correo" name="correo" maxlength="100" placeholder="nombre@institucion.cr" required></div>
+<div class="grupo-campo"><label for="clave">Nueva contraseña (opcional)</label><input type="password" id="clave" name="password" minlength="6" maxlength="100" autocomplete="new-password" placeholder="Sin cambios: dejar vacío"><span class="field-hint">Deje este campo vacío para conservar la contraseña.</span></div>
+<div class="grupo-campo"><label for="rol">Rol del usuario *</label><select id="rol" name="rol" required><option value="">Seleccione el rol</option><option value="SUPERUSER">Superusuario</option><option value="INTERMEDIATE_USER">Usuario intermedio</option><option value="BASIC_USER">Usuario básico</option></select></div>
+</div><div class="acciones-registro"><button type="button" id="cancelar-actualizacion" class="boton-cancelar">Cancelar</button><button type="submit" id="boton-actualizar" class="boton-login">✓ Guardar cambios</button></div>
+<p id="mensaje-actualizacion" class="mensaje-formulario" role="status" aria-live="polite"></p></form></div></section>
+<aside class="card help-card"><div class="help-kicker">BUENAS PRÁCTICAS</div><h3>Antes de actualizar</h3><ol class="help-steps"><li><span class="step-num">1</span><span><strong>Compruebe el ID</strong>Verifique que corresponde a la persona correcta.</span></li><li><span class="step-num">2</span><span><strong>Complete los datos</strong>Nombre, correo y rol son necesarios incluso si no cambiaron.</span></li><li><span class="step-num">3</span><span><strong>Conserve su contraseña</strong>Deje el campo de contraseña vacío cuando no necesite cambiarla.</span></li></ol><div class="tip-divider"></div><div class="soft-note">Los cambios de datos y permisos deben realizarse solo con autorización institucional.</div></aside></div>
+    </main>
+    <footer class="workspace-footer"><span>SGA · CTP Osa</span><span>Acceso exclusivo para personal autorizado</span></footer>
+  </div>
+</div>
+</body></html>

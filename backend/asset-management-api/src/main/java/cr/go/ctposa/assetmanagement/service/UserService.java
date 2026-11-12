@@ -2,15 +2,19 @@ package cr.go.ctposa.assetmanagement.service;
 
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserResponse;
+import cr.go.ctposa.assetmanagement.dto.user.DeleteUserPreviewResponse;
+import cr.go.ctposa.assetmanagement.dto.user.DeleteUserResponse;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRoleRequest;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserStatusRequest;
+import cr.go.ctposa.assetmanagement.exception.UserDeletionConflictException;
 import cr.go.ctposa.assetmanagement.model.Audit;
 import cr.go.ctposa.assetmanagement.model.Role;
 import cr.go.ctposa.assetmanagement.model.User;
 import cr.go.ctposa.assetmanagement.repository.AuditRepository;
 import cr.go.ctposa.assetmanagement.repository.RoleRepository;
 import cr.go.ctposa.assetmanagement.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -303,4 +307,79 @@ public class UserService {
         return new CreateUserResponse(saved.getId(), saved.getName(),
                 saved.getEmail(), saved.getRole().getName(), saved.getActive());
     }
+    /** HU-GU-06: muestra el motivo si una cuenta no puede eliminarse. */
+    @Transactional(readOnly = true)
+    public DeleteUserPreviewResponse getDeletionPreview(Integer id) {
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("El usuario con el ID indicado no existe"));
+        User actor = deletionActor();
+        String reason = deletionBlockReason(target, actor);
+        return new DeleteUserPreviewResponse(
+                target.getId(), target.getName(), target.getEmail(),
+                target.getRole().getName(), Boolean.TRUE.equals(target.getActive()),
+                reason == null, reason == null ? "La cuenta puede eliminarse definitivamente." : reason);
+    }
+
+    /**
+     * HU-GU-06 CA01: borra físicamente el usuario y registra la acción.
+     * CA03 y CA04: protege cuentas activas o con registros históricos.
+     * No se usa cascada: una FK histórica imprevista impide el borrado.
+     */
+    @Transactional
+    public DeleteUserResponse deleteUser(Integer id) {
+        User target = userRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new IllegalArgumentException("El usuario con el ID indicado no existe"));
+        User actor = deletionActor();
+        String reason = deletionBlockReason(target, actor);
+        if (reason != null) {
+            throw new UserDeletionConflictException(reason);
+        }
+
+        int deletedId = target.getId();
+        String deletedEmail = target.getEmail();
+        String deletedRole = target.getRole().getName();
+        try {
+            // flush fuerza las comprobaciones de claves foráneas antes de registrar éxito.
+            userRepository.delete(target);
+                userRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw new UserDeletionConflictException(
+                    "No se puede eliminar: el usuario tiene actividad histórica o registros relacionados.");
+        }
+
+        Audit audit = new Audit();
+        audit.setUser(actor); // el actor no puede ser el propio usuario borrado
+        audit.setAction("DELETE_USER");
+        audit.setAffectedTable("usuario");
+        audit.setDetails("Usuario eliminado definitivamente: id=" + deletedId
+                + ", correo=" + deletedEmail + ", rol=" + deletedRole);
+        auditRepository.save(audit);
+        return new DeleteUserResponse(deletedId, "Usuario eliminado definitivamente de forma exitosa.");
+    }
+
+    /** Obtener la identidad actual de la base de datos, no de los datos del navegador. */
+    private User deletionActor() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth.getName() == null
+                || auth.getName().isBlank() || "anonymousUser".equals(auth.getName())) {
+            throw new IllegalStateException("No se pudo identificar al superusuario autenticado");
+        }
+        return userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new IllegalStateException("No se encontro al usuario autenticado"));
+    }
+
+    /** Devuelve null si el usuario es elegible; de lo contrario, el motivo del bloqueo. */
+    private String deletionBlockReason(User target, User actor) {
+        if (target.getId().equals(actor.getId())) {
+            return "No puede eliminar su propia cuenta.";
+        }
+        if (Boolean.TRUE.equals(target.getActive())) {
+            return "Usuario habilitado: primero debe inactivar la cuenta antes de eliminarla.";
+        }
+        if (auditRepository.existsByUser_Id(target.getId())) {
+            return "Usuario con actividad histórica: no se puede eliminar porque tiene registros de auditoría.";
+        }
+        return null;
+    }
+
 }

@@ -1,330 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - Sistema de Gestión de Activos</title>
-    <style>
-        :root {
-            --bg-dark: #071628;
-            --accent-blue: #0098db;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #cbd5e1;
-            --moss-green: #4b6b4e;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background-color: #f8fafc;
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        aside {
-            width: 320px;
-            background-color: var(--bg-dark);
-            background-image: linear-gradient(to bottom, #071628, #050b14);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 2.5rem 2rem;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .brand-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .brand-logo {
-            width: 48px;
-            height: 48px;
-            background: rgba(0, 152, 219, 0.15);
-            border: 1px solid rgba(0, 152, 219, 0.3);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .brand-logo svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--accent-blue);
-        }
-
-        .brand-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .brand-subtitle {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
-        .sidebar-hero h3 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--accent-blue);
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-hero h1 {
-            font-size: 2.25rem;
-            line-height: 1.1;
-            font-weight: 800;
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-hero h1 span {
-            color: var(--accent-blue);
-        }
-
-        .sidebar-hero p {
-            color: #94a3b8;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .sidebar-footer {
-            font-size: 0.75rem;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        main {
-            flex: 1;
-            padding: 3rem 4rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            max-width: 900px;
-        }
-
-        .panel-container-flat {
-            width: 100%;
-        }
-
-        .card-header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.5rem;
-        }
-
-        .welcome-title {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
-
-        .role-badge {
-            background: #ffffff;
-            color: #334155;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .badge-authorized {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(75, 107, 78, 0.12);
-            color: var(--moss-green);
-            padding: 0.35rem 1rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 1.5rem;
-        }
-
-        .badge-authorized::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            background-color: var(--moss-green);
-            border-radius: 50%;
-            margin-right: 6px;
-        }
-
-        .user-meta {
-            color: var(--text-muted);
-            font-size: 1rem;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .action-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary {
-            background-color: #0284c7;
-            color: white;
-            border: none;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-        }
-
-        .btn-primary:hover {
-            background-color: #0369a1;
-            transform: translateY(-1px);
-        }
-
-        .btn-outline {
-            background: #ffffff;
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-outline:hover {
-            background: #f1f5f9;
-            border-color: #94a3b8;
-        }
-
-        .system-note {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .btn-danger-outline {
-            display: block;
-            width: 100%;
-            background: #ffffff;
-            color: #e11d48;
-            border: 1px solid #fecdd3;
-            padding: 0.85rem;
-            border-radius: 10px;
-            font-weight: 600;
-            text-align: center;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-
-        .btn-danger-outline:hover {
-            background: #fff1f2;
-        }
-    </style>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel principal | Sistema de Gestión de Activos</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/panel.js" defer></script>
 </head>
-<body>
-
-    <aside>
-        <div>
-            <div class="brand-container" style="margin-bottom: 3rem;">
-                <div class="brand-logo">
-                    <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3m10 0h8v8h-8V3M3 13h8v8H3v-8m10 0h8v8h-8v-8z"/></svg>
-                </div>
-                <div>
-                    <div class="brand-title">SGA</div>
-                    <div class="brand-subtitle">Portal institucional</div>
-                </div>
-            </div>
-
-            <div class="sidebar-hero">
-                <h3>Sesión iniciada</h3>
-                <h1>Sistema de <span>Gestión de Activos</span></h1>
-                <p>Panel de control centralizado según su rol institucional.</p>
-            </div>
-        </div>
-
-        <div class="sidebar-footer">
-            Entorno digital institucional
-        </div>
-    </aside>
-
-    <main>
-        <div class="panel-container-flat">
-            <div class="card-header-top">
-                <h1 class="welcome-title">Bienvenido</h1>
-                <div class="role-badge">Rol: SUPERUSER</div>
-            </div>
-
-            <div class="badge-authorized">Acceso Autorizado</div>
-
-            <div class="user-meta">Superusuario Pruebas · superuser.pruebas@example.com</div>
-
-            <div class="action-grid">
-                <a href="/crear-usuario.html" class="btn btn-primary">Registrar nuevo usuario →</a>
-                <a href="/update_user.html" class="btn btn-outline">Actualizar usuario →</a>
-            </div>
-
-            <p class="system-note">Las demás funcionalidades del sistema se incorporarán en siguientes módulos.</p>
-
-            <a href="/index.html" class="btn-danger-outline">Cerrar sesión</a>
-
-            <div class="card-footer" style="margin-top: 1.5rem;">
-                <span>Sistema de Gestión de Activos</span>
-                <span>Portal institucional</span>
-            </div>
-        </div>
+<body class="app-page">
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Menú principal">
+    <a href="panel.html" class="brand"><span class="brand-mark" aria-hidden="true">S</span><span><strong>SGA · CTP Osa</strong><small>Plataforma institucional</small></span></a>
+    <div class="sidebar-label">NAVEGACIÓN</div>
+    <nav class="nav-list" aria-label="Administración de usuarios"><a href="panel.html" class="nav-link active" aria-current="page"><span class="nav-icon" aria-hidden="true">▦</span>Panel principal</a>
+<a href="crear-usuario.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">＋</span>Registrar usuario</a>
+<a href="update_user.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">✎</span>Actualizar datos</a>
+<a href="modificar-rol.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">♙</span>Modificar roles</a>
+<a href="estado-usuario.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">◉</span>Estados y eliminación</a></nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-tip"><span class="tip-icon" aria-hidden="true">✦</span><strong>Gestión responsable</strong><p>Compruebe la información y los permisos antes de guardar cualquier modificación.</p></div>
+      <div class="sidebar-footer">SISTEMA DE GESTIÓN DE ACTIVOS<br>ENTORNO INSTITUCIONAL</div>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div class="breadcrumb"><span>Inicio</span><span>›</span><span>Gestión de usuarios</span><span>›</span><strong>Panel principal</strong></div><div class="topbar-right"><span class="topbar-status">Portal seguro</span><a class="topbar-link" href="panel.html">Volver al panel</a></div></header>
+    <main class="workspace-main">
+      <div class="page-intro"><div><div class="eyebrow">MÓDULO DE USUARIOS</div><h1>Panel principal</h1><p>Un punto de partida claro para administrar los usuarios y su acceso al sistema.</p></div><span class="intro-symbol" aria-hidden="true">▦</span></div>
+      <div class="hero-dashboard"><div><span class="eyebrow">CENTRO DE ADMINISTRACIÓN</span><h1>¡Bienvenido al sistema!</h1><p>Desde aquí podrá acceder a las herramientas de gestión de usuarios disponibles según su perfil institucional.</p></div><span class="hero-icon" aria-hidden="true">▦</span></div>
+<p class="mensaje-formulario informacion" id="estado-panel" role="status">Verificando sesión y permisos de acceso...</p>
+<div id="panel-cuenta" hidden>
+  <div class="user-summary"><div><small>CUENTA ACTIVA</small><div id="datos-cuenta"></div></div><div class="role-badge" id="rol-cuenta"></div></div>
+  <section class="admin-navigation" hidden aria-label="Herramientas administrativas">
+    <div class="section-heading"><div><h2>Herramientas de administración</h2><p>Seleccione la tarea que necesita realizar.</p></div><span class="eyebrow">4 FUNCIONES</span></div>
+    <div class="action-grid">
+      <a href="crear-usuario.html" id="enlace-registro" class="action-card card"><span class="action-icon" aria-hidden="true">＋</span><div><h3>Registrar usuario</h3><p>Cree una cuenta nueva y asigne su nivel de acceso inicial.</p><span class="card-link">Crear cuenta →</span></div></a>
+      <a href="update_user.html" id="enlace-actualizacion" class="action-card card"><span class="action-icon blue" aria-hidden="true">✎</span><div><h3>Actualizar datos</h3><p>Edite la información de una cuenta existente.</p><span class="card-link">Actualizar información →</span></div></a>
+      <a href="modificar-rol.html" id="enlace-rol" class="action-card card"><span class="action-icon violet" aria-hidden="true">♙</span><div><h3>Modificar roles</h3><p>Configure los permisos que corresponden a cada usuario.</p><span class="card-link">Administrar permisos →</span></div></a>
+      <a href="estado-usuario.html" id="enlace-estado" class="action-card card"><span class="action-icon amber" aria-hidden="true">◉</span><div><h3>Estados y eliminación</h3><p>Active, inactive o elimine cuentas desde un único espacio seguro.</p><span class="card-link">Gestionar cuentas →</span></div></a>
+    </div>
+  </section>
+  <div class="bottom-grid"><section class="card"><div class="help-kicker">GUÍA RÁPIDA</div><h3>¿Por dónde comenzar?</h3><p>Registre a una persona, configure sus permisos y consulte el estado de su cuenta. Las operaciones administrativas requieren un rol autorizado.</p></section><section class="card"><div class="help-kicker">SEGURIDAD</div><h3>Su sesión es personal</h3><p>Evite compartir sus credenciales. Al finalizar, cierre sesión para proteger la información institucional.</p><a href="index.html" id="cerrar-sesion" class="signout-link">↪ Cerrar sesión</a></section></div>
+</div>
     </main>
-
-    <script>
-        if (!window.SGAAPI) {
-            window.SGAAPI = {
-                sesion: function() {
-                    let s = localStorage.getItem('usuario');
-                    if (!s) {
-                        const def = { id: 1, role: 'SUPERUSER', email: 'superuser.pruebas@example.com' };
-                        localStorage.setItem('usuario', JSON.stringify(def));
-                        return def;
-                    }
-                    return JSON.parse(s);
-                },
-                cerrarSesion: function() {
-                    localStorage.removeItem('usuario');
-                }
-            };
-        }
-        window.SGAAPI.sesion();
-    </script>
-    <script src="/js/panel.js"></script>
-</body>
-</html>
+    <footer class="workspace-footer"><span>SGA · CTP Osa</span><span>Acceso exclusivo para personal autorizado</span></footer>
+  </div>
+</div>
+</body></html>

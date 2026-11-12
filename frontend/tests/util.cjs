@@ -31,7 +31,11 @@ function runPage(page, { response, session, confirmResult = true } = {}) {
     'formulario-rol','mensaje-rol','boton-modificar-rol','cancelar-rol','error-id','enlace-rol',
     'enlace-estado','formulario-estado','mensaje-estado','boton-estado','cancelar-estado',
     'consultar-estado','ficha-usuario','seccion-cambio','motivo-estado','error-motivo',
-    'nombre-usuario','correo-usuario','rol-usuario','estado-actual'];
+    'nombre-usuario','correo-usuario','rol-usuario','estado-actual',
+    'enlace-eliminar','formulario-eliminar','consultar-eliminacion','ficha-eliminar',
+    'seccion-eliminar','boton-eliminar','cancelar-eliminacion','mensaje-eliminacion',
+    'nombre-eliminar','correo-eliminar','rol-eliminar','estado-eliminar',
+    'abrir-eliminacion','panel-eliminacion'];
   const dom = Object.fromEntries(ids.map(id => [id, makeElement()]));
   const history = [];
   const calls = [];

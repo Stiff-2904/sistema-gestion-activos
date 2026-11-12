@@ -2,6 +2,8 @@ package cr.go.ctposa.assetmanagement.controller;
 
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.CreateUserResponse;
+import cr.go.ctposa.assetmanagement.dto.user.DeleteUserPreviewResponse;
+import cr.go.ctposa.assetmanagement.dto.user.DeleteUserResponse;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRequest;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserRoleRequest;
 import cr.go.ctposa.assetmanagement.dto.user.UpdateUserStatusRequest;
@@ -49,6 +51,20 @@ public class UserController {
             @Valid @RequestBody UpdateUserRoleRequest request) {
         return ResponseEntity.ok(userService.updateUserRole(id, request));
     }
+    /** HU-GU-06: consultar si la eliminación definitiva está permitida. */
+    @GetMapping("/{id}/deletion")
+    @PreAuthorize("hasRole('SUPERUSER')")
+    public ResponseEntity<DeleteUserPreviewResponse> getDeletionPreview(@PathVariable Integer id) {
+        return ResponseEntity.ok(userService.getDeletionPreview(id));
+    }
+
+    /** HU-GU-06: eliminar definitivamente una cuenta elegible. */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPERUSER')")
+    public ResponseEntity<DeleteUserResponse> deleteUser(@PathVariable Integer id) {
+        return ResponseEntity.ok(userService.deleteUser(id));
+    }
+
     /** HU-GU-05: consultar el estado REAL de la cuenta antes de mostrar la accion. */
     @GetMapping("/{id}/status")
     @PreAuthorize("hasRole('SUPERUSER')")

@@ -1,121 +1,35 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Inicio de sesión | Sistema de Gestión de Activos</title>
-
-    <link rel="stylesheet" href="css/login.css" />
-    <script src="js/api.js" defer></script>
-    <script src="js/login.js" defer></script>
-  </head>
-
-  <body>
-    <main class="pagina-login">
-      <section class="panel-institucional">
-        <div class="marca">
-          <div class="marca-icono" aria-hidden="true">▦</div>
-          <div>
-            <strong>SGA</strong>
-            <span>Portal institucional</span>
-          </div>
-        </div>
-
-        <div class="presentacion">
-          <p class="etiqueta">ACCESO INSTITUCIONAL</p>
-
-          <h1>
-            Sistema de
-            <span>Gestión de Activos</span>
-          </h1>
-
-          <p class="descripcion">
-            Plataforma digital para la administración y organización de activos
-            institucionales.
-          </p>
-        </div>
-
-        <div class="pie-institucional">ENTORNO DIGITAL INSTITUCIONAL</div>
-      </section>
-
-      <section class="panel-acceso">
-        <div class="tarjeta-login">
-          <div class="insignia">
-            <span class="punto"></span>
-            PORTAL INSTITUCIONAL
-          </div>
-
-          <h2>Iniciar sesión</h2>
-
-          <p class="texto-secundario">
-            Ingrese sus credenciales para acceder al sistema.
-          </p>
-
-          <form id="formulario-login" novalidate>
-            <div class="grupo-campo">
-              <label for="usuario">Correo electrónico</label>
-
-              <input
-                type="email"
-                id="usuario"
-                name="usuario"
-                placeholder="Ingrese su correo electrónico"
-                autocomplete="email"
-                aria-describedby="error-usuario"
-                required
-              />
-
-              <small id="error-usuario" class="error-campo"></small>
-            </div>
-
-            <div class="grupo-campo">
-              <label for="contrasena"> Contraseña </label>
-
-              <div class="contenedor-contrasena">
-                <input
-                  type="password"
-                  id="contrasena"
-                  name="contrasena"
-                  placeholder="Ingrese su contraseña"
-                  autocomplete="current-password"
-                  aria-describedby="error-contrasena"
-                  required
-                />
-
-                <button
-                  type="button"
-                  id="mostrar-contrasena"
-                  class="boton-mostrar"
-                  aria-label="Mostrar contraseña"
-                  aria-pressed="false"
-                >
-                  Mostrar
-                </button>
-              </div>
-
-              <small id="error-contrasena" class="error-campo"></small>
-            </div>
-
-            <button type="submit" id="boton-login" class="boton-login">
-              Iniciar sesión
-              <span aria-hidden="true">→</span>
-            </button>
-
-            <p
-              id="mensaje-formulario"
-              class="mensaje-formulario"
-              role="status"
-              aria-live="polite"
-            ></p>
-          </form>
-
-          <div class="pie-tarjeta">
-            <span>Acceso para personal autorizado</span>
-            <span>Sistema de Gestión de Activos</span>
-          </div>
-        </div>
-      </section>
-    </main>
-  </body>
-</html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Iniciar sesión | Sistema de Gestión de Activos</title><link rel="stylesheet" href="css/app.css"><script src="js/api.js" defer></script><script src="js/login.js" defer></script></head>
+<body>
+<main class="login-page">
+  <section class="login-hero" aria-label="Presentación institucional">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">S</span><span><strong>SGA · CTP Osa</strong><small>Plataforma institucional</small></span></a>
+    <div class="login-hero-content">
+      <div class="eyebrow">TECNOLOGÍA AL SERVICIO DE LA EDUCACIÓN</div>
+      <h1>Gestión más clara.<br><span>Institución mejor organizada.</span></h1>
+      <p>Bienvenido al Sistema de Gestión de Activos. Un espacio pensado para administrar el acceso de forma organizada, segura y sencilla.</p>
+      <div class="login-benefits">
+        <div class="login-benefit"><span aria-hidden="true">✓</span> Roles definidos y acceso autorizado</div>
+        <div class="login-benefit"><span aria-hidden="true">▦</span> Procesos administrativos estructurados</div>
+        <div class="login-benefit"><span aria-hidden="true">✦</span> Una experiencia clara y fácil de aprender</div>
+      </div>
+    </div>
+    <div class="login-hero-footer">CTP OSA · ENTORNO DIGITAL INSTITUCIONAL</div>
+  </section>
+  <section class="login-right" aria-label="Acceso al sistema">
+    <div class="login-card">
+      <div class="eyebrow">BIENVENIDO DE NUEVO</div>
+      <h2>Iniciar sesión</h2>
+      <p>Ingrese sus credenciales institucionales para acceder a su espacio de trabajo.</p>
+      <form id="formulario-login" novalidate>
+        <div class="grupo-campo"><label for="usuario">Correo electrónico</label><input type="email" id="usuario" name="usuario" placeholder="nombre@institucion.cr" autocomplete="email" aria-describedby="error-usuario" required><small id="error-usuario" class="error-campo" aria-live="polite"></small></div>
+        <div class="grupo-campo"><label for="contrasena">Contraseña</label><div class="contenedor-contrasena"><input type="password" id="contrasena" name="contrasena" placeholder="Ingrese su contraseña" autocomplete="current-password" aria-describedby="error-contrasena" required><button type="button" id="mostrar-contrasena" class="boton-mostrar" aria-label="Mostrar contraseña" aria-pressed="false">Mostrar</button></div><small id="error-contrasena" class="error-campo" aria-live="polite"></small></div>
+        <button type="submit" id="boton-login" class="boton-login">Entrar a mi cuenta <span aria-hidden="true">→</span></button>
+        <p id="mensaje-formulario" class="mensaje-formulario" role="status" aria-live="polite"></p>
+      </form>
+      <div class="login-secure"><span aria-hidden="true">◈</span><span>Acceso para <strong>personal autorizado</strong>. Proteja sus credenciales.</span></div>
+    </div>
+  </section>
+</main>
+</body></html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registrar usuario | Sistema de Gestión de Activos</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/api.js" defer></script>
+  <script src="js/registro-validaciones.js" defer></script><script src="js/crear-usuario.js" defer></script>
+</head>
+<body class="app-page">
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Menú principal">
+    <a href="panel.html" class="brand"><span class="brand-mark" aria-hidden="true">S</span><span><strong>SGA · CTP Osa</strong><small>Plataforma institucional</small></span></a>
+    <div class="sidebar-label">NAVEGACIÓN</div>
+    <nav class="nav-list" aria-label="Administración de usuarios"><a href="panel.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">▦</span>Panel principal</a>
+<a href="crear-usuario.html" class="nav-link active" aria-current="page"><span class="nav-icon" aria-hidden="true">＋</span>Registrar usuario</a>
+<a href="update_user.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">✎</span>Actualizar datos</a>
+<a href="modificar-rol.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">♙</span>Modificar roles</a>
+<a href="estado-usuario.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">◉</span>Estados y eliminación</a></nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-tip"><span class="tip-icon" aria-hidden="true">✦</span><strong>Gestión responsable</strong><p>Compruebe la información y los permisos antes de guardar cualquier modificación.</p></div>
+      <div class="sidebar-footer">SISTEMA DE GESTIÓN DE ACTIVOS<br>ENTORNO INSTITUCIONAL</div>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div class="breadcrumb"><span>Inicio</span><span>›</span><span>Gestión de usuarios</span><span>›</span><strong>Registrar usuario</strong></div><div class="topbar-right"><span class="topbar-status">Portal seguro</span><a class="topbar-link" href="panel.html">Volver al panel</a></div></header>
+    <main class="workspace-main">
+      <div class="page-intro"><div><div class="eyebrow">MÓDULO DE USUARIOS</div><h1>Registrar usuario</h1><p>Cree cuentas nuevas de manera ordenada y asigne el rol correcto desde el inicio.</p></div><span class="intro-symbol" aria-hidden="true">＋</span></div>
+      <div class="two-column">
+<section class="card"><div class="card-head"><h2>Datos de la nueva cuenta</h2><p>Complete cada campo. El sistema validará la información antes de crear el registro.</p></div><div class="card-body">
+<form id="formulario-registro" novalidate>
+<div class="form-grid">
+<div class="grupo-campo full"><label for="nombre">Nombre completo *</label><input id="nombre" name="name" type="text" maxlength="100" autocomplete="name" placeholder="Ejemplo: Ana Pérez" aria-describedby="error-name" required><small id="error-name" class="error-campo" aria-live="polite"></small></div>
+<div class="grupo-campo full"><label for="correo">Correo institucional *</label><input id="correo" name="email" type="email" maxlength="100" autocomplete="off" placeholder="nombre@institucion.cr" aria-describedby="error-email" required><small id="error-email" class="error-campo" aria-live="polite"></small></div>
+<div class="grupo-campo"><label for="clave">Contraseña inicial *</label><input id="clave" name="password" type="password" minlength="6" maxlength="100" autocomplete="new-password" placeholder="Mínimo 6 caracteres" aria-describedby="error-password" required><small id="error-password" class="error-campo" aria-live="polite"></small><span class="field-hint">Utilice una contraseña única y segura.</span></div>
+<div class="grupo-campo"><label for="rol">Rol inicial *</label><select id="rol" name="role" aria-describedby="error-role" required><option value="">Seleccione un rol</option><option value="SUPERUSER">Superusuario</option><option value="INTERMEDIATE_USER">Usuario intermedio</option><option value="BASIC_USER">Usuario básico</option></select><small id="error-role" class="error-campo" aria-live="polite"></small></div>
+</div>
+<div class="acciones-registro"><button type="button" id="cancelar-registro" class="boton-cancelar">Cancelar</button><button type="submit" id="boton-registrar" class="boton-login">＋ Registrar usuario</button></div>
+<p id="mensaje-registro" class="mensaje-formulario" role="status" aria-live="polite"></p>
+</form></div></section>
+<aside class="card help-card"><div class="help-kicker">APRENDA EL PROCESO</div><h3>Crear una cuenta en 3 pasos</h3><ol class="help-steps"><li><span class="step-num">1</span><span><strong>Identifique a la persona</strong>Ingrese nombre y correo institucional.</span></li><li><span class="step-num">2</span><span><strong>Defina su acceso</strong>Asigne solo los permisos necesarios para sus tareas.</span></li><li><span class="step-num">3</span><span><strong>Revise y registre</strong>Compruebe los datos antes de confirmar.</span></li></ol><div class="tip-divider"></div><div class="soft-note"><strong>Consejo de seguridad:</strong> reserve el rol de superusuario para quienes realmente deban administrar el sistema.</div></aside>
+</div>
+    </main>
+    <footer class="workspace-footer"><span>SGA · CTP Osa</span><span>Acceso exclusivo para personal autorizado</span></footer>
+  </div>
+</div>
+</body></html>

@@ -1,6 +1,7 @@
+/* HU-GU-03: PUT autenticado, validaciones, permisos y cancelacion sin cambios. */
 (function () {
   'use strict';
-  
+  const api = window.SGAAPI;
   const form = document.getElementById('formulario-actualizacion');
   const mensaje = document.getElementById('mensaje-actualizacion');
   const guardar = document.getElementById('boton-actualizar');
@@ -11,76 +12,75 @@
   const clave = document.getElementById('clave');
   const rol = document.getElementById('rol');
 
+  const sesion = api.sesion();
+  if (!sesion) {
+    window.location.replace('index.html');
+    return;
+  }
+  if (sesion.role !== 'SUPERUSER') {
+    window.location.replace('panel.html');
+    return;
+  }
+
   function avisar(texto, clase = '') {
-    if (!mensaje) return;
     mensaje.textContent = texto;
     mensaje.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
   }
 
-  if (form) {
-    form.addEventListener('submit', async function (evento) {
-      evento.preventDefault();
-      if (guardar && guardar.disabled) return;
-      
-      const id = Number(idCampo.value);
-      const name = nombre.value.trim();
-      const email = correo.value.trim().toLowerCase();
-      const password = clave.value;
-      const role = rol.value;
+  form.addEventListener('submit', async function (evento) {
+    evento.preventDefault();
+    if (guardar.disabled) return;
+    const id = Number(idCampo.value);
+    const password = clave.value;
 
-      if (!Number.isSafeInteger(id) || id < 1) {
-        avisar('Debe indicar un ID de usuario válido.', 'error'); 
-        idCampo.focus(); 
+    if (!Number.isSafeInteger(id) || id < 1) {
+      avisar('Debe indicar un ID de usuario válido.', 'error');
+      idCampo.focus();
+      return;
+    }
+    if (password && (password.length < 6 || password.length > 100)) {
+      avisar('La contraseña debe tener entre 6 y 100 caracteres.', 'error');
+      clave.focus();
+      return;
+    }
+
+    guardar.disabled = true;
+    cancelar.disabled = true;
+    avisar('Guardando cambios...', 'informacion');
+    try {
+      const respuesta = await api.solicitud('/api/v1/users/' + id, {
+        method: 'PUT',
+        autenticado: true,
+        body: {
+          name: nombre.value.trim(),
+          email: correo.value.trim().toLowerCase(),
+          password: password ? password : null,
+          role: rol.value,
+        },
+      });
+      form.reset();
+      if (respuesta.id === sesion.id) {
+        api.cerrarSesion();
+        avisar('Usuario actualizado correctamente. Inicie sesión nuevamente para aplicar los cambios.', 'exito');
+      } else {
+        avisar('Usuario actualizado correctamente.', 'exito');
+      }
+    } catch (error) {
+      if (error.status === 401) {
+        api.cerrarSesion();
+        window.location.replace('index.html');
         return;
       }
+      avisar(error.message, 'error');
+    } finally {
+      guardar.disabled = false;
+      cancelar.disabled = false;
+    }
+  });
 
-      if (guardar) guardar.disabled = true;
-      if (cancelar) cancelar.disabled = true;
-      avisar('Guardando cambios...', 'informacion');
-
-      try {
-        const usuarioSesion = JSON.parse(localStorage.getItem('usuario') || '{}');
-        const token = usuarioSesion.token || localStorage.getItem('token') || '';
-
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-
-        if (token) {
-          headers['Authorization'] = 'Bearer ' + token;
-        }
-
-        const respuesta = await fetch('/api/v1/users/' + id, {
-          method: 'PUT',
-          headers: headers,
-          body: JSON.stringify({ 
-            name: name, 
-            email: email, 
-            password: password ? password : null, 
-            role: role 
-          })
-        });
-
-        if (!respuesta.ok) {
-          const errorData = await respuesta.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Error en el servidor: ' + respuesta.statusText);
-        }
-
-        form.reset();
-        avisar('¡Usuario actualizado correctamente en la base de datos!', 'exito');
-      } catch (error) {
-        avisar(error.message || 'Error al actualizar el usuario.', 'error');
-      } finally {
-        if (guardar) guardar.disabled = false;
-        if (cancelar) cancelar.disabled = false;
-      }
-    });
-  }
-
-  if (cancelar) {
-    cancelar.addEventListener('click', function () {
-      if (form) form.reset();
-      window.location.assign('panel.html');
-    });
-  }
+  cancelar.addEventListener('click', function () {
+    if (cancelar.disabled) return;
+    form.reset();
+    window.location.assign('panel.html');
+  });
 })();
