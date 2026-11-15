@@ -1,7 +1,15 @@
 package cr.go.ctposa.assetmanagement.config;
 
+import cr.go.ctposa.assetmanagement.model.AcquisitionMode;
+import cr.go.ctposa.assetmanagement.model.AssetStatus;
+import cr.go.ctposa.assetmanagement.model.Category;
+import cr.go.ctposa.assetmanagement.model.Location;
 import cr.go.ctposa.assetmanagement.model.Role;
 import cr.go.ctposa.assetmanagement.model.User;
+import cr.go.ctposa.assetmanagement.repository.AcquisitionModeRepository;
+import cr.go.ctposa.assetmanagement.repository.AssetStatusRepository;
+import cr.go.ctposa.assetmanagement.repository.CategoryRepository;
+import cr.go.ctposa.assetmanagement.repository.LocationRepository;
 import cr.go.ctposa.assetmanagement.repository.RoleRepository;
 import cr.go.ctposa.assetmanagement.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,12 +34,52 @@ public class DataInitializer {
     public CommandLineRunner initializeData(
             RoleRepository roleRepository,
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            AssetStatusRepository statusRepository,
+            LocationRepository locationRepository,
+            CategoryRepository categoryRepository,
+            AcquisitionModeRepository acquisitionModeRepository) {
 
         return args -> {
             createRoles(roleRepository);
             createSuperuser(userRepository, roleRepository, passwordEncoder);
+            createAssetCatalogs(statusRepository, locationRepository,
+                    categoryRepository, acquisitionModeRepository);
         };
+    }
+
+    // HU-GA-01: el formulario necesita opciones en sus listas desplegables.
+    // Solo se insertan datos iniciales cuando la tabla esta vacia; luego se administran en la base de datos.
+    private void createAssetCatalogs(
+            AssetStatusRepository statusRepository,
+            LocationRepository locationRepository,
+            CategoryRepository categoryRepository,
+            AcquisitionModeRepository acquisitionModeRepository) {
+
+        if (statusRepository.count() == 0) {
+            statusRepository.save(new AssetStatus("Nuevo", "Activo sin uso previo"));
+            statusRepository.save(new AssetStatus("Bueno", "Activo en buen estado de funcionamiento"));
+            statusRepository.save(new AssetStatus("Regular", "Activo con desgaste visible pero funcional"));
+            statusRepository.save(new AssetStatus("Malo", "Activo con danos o fallas importantes"));
+            System.out.println("Estados de activos iniciales creados.");
+        }
+        if (acquisitionModeRepository.count() == 0) {
+            acquisitionModeRepository.save(new AcquisitionMode("Compra", "Adquirido mediante compra"));
+            acquisitionModeRepository.save(new AcquisitionMode("Donacion", "Recibido como donacion"));
+            acquisitionModeRepository.save(new AcquisitionMode("Traspaso", "Recibido por traspaso entre instituciones"));
+            System.out.println("Modos de adquisicion iniciales creados.");
+        }
+        if (categoryRepository.count() == 0) {
+            categoryRepository.save(new Category("Equipo de computo", "Computadoras, impresoras y perifericos"));
+            categoryRepository.save(new Category("Mobiliario", "Escritorios, sillas, estantes y similares"));
+            categoryRepository.save(new Category("Equipo de laboratorio", "Instrumentos y equipo especializado"));
+            categoryRepository.save(new Category("Otros", "Activos que no pertenecen a otra categoria"));
+            System.out.println("Categorias de activos iniciales creadas.");
+        }
+        if (locationRepository.count() == 0) {
+            locationRepository.save(new Location("Bodega general", "Edificio principal"));
+            System.out.println("Ubicacion inicial creada.");
+        }
     }
 
     private void createRoles(RoleRepository roleRepository) {

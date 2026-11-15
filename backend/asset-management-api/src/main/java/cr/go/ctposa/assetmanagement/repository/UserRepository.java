@@ -1,6 +1,7 @@
 package cr.go.ctposa.assetmanagement.repository;
 
 import cr.go.ctposa.assetmanagement.model.User;
+import java.util.List;
 import java.util.Optional;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
@@ -18,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByIdForUpdate(@Param("id") Integer id);
 
     long countByRoleNameAndActive(String roleName, Boolean active);
+
+    List<User> findByActiveTrueOrderByNameAsc();
 }

@@ -3,19 +3,21 @@ const vm = require('node:vm');
 const path = require('node:path');
 const validator = require('../js/registro-validaciones.js');
 const validatorRol = require('../js/modificar-rol-validaciones.js');
+const validatorActivo = require('../js/registrar-activo-validaciones.js');
 
 function makeElement() {
   const handlers = {};
   const classes = new Set();
   return {
     value: '', textContent: '', type: 'password', className: '', hidden: false, disabled: false,
-    attrs: {}, handlers, focusCount: 0, resetCount: 0,
+    attrs: {}, handlers, focusCount: 0, resetCount: 0, children: [],
     classList: { add(x) { classes.add(x); }, remove(x) { classes.delete(x); }, contains(x) { return classes.has(x); } },
     setAttribute(k,v) { this.attrs[k] = v; },
     removeAttribute(k) { delete this.attrs[k]; },
     addEventListener(k, fn) { handlers[k] = fn; },
     focus() { this.focusCount++; },
     reset() { this.resetCount++; },
+    appendChild(hijo) { this.children.push(hijo); },
   };
 }
 function jsonReply(status, body) {
@@ -35,7 +37,11 @@ function runPage(page, { response, session, confirmResult = true } = {}) {
     'enlace-eliminar','formulario-eliminar','consultar-eliminacion','ficha-eliminar',
     'seccion-eliminar','boton-eliminar','cancelar-eliminacion','mensaje-eliminacion',
     'nombre-eliminar','correo-eliminar','rol-eliminar','estado-eliminar',
-    'abrir-eliminacion','panel-eliminacion'];
+    'abrir-eliminacion','panel-eliminacion',
+    'formulario-activo','mensaje-activo','boton-registrar-activo','cancelar-activo',
+    ...['numero-activo','descripcion-activo','marca-activo','modelo-activo','serie-activo','precio-activo',
+      'estado-activo','ubicacion-activo','categoria-activo','modo-activo','responsable-activo',
+      'observaciones-activo'].flatMap(id => [id, 'error-' + id])];
   const dom = Object.fromEntries(ids.map(id => [id, makeElement()]));
   const history = [];
   const calls = [];
@@ -45,6 +51,7 @@ function runPage(page, { response, session, confirmResult = true } = {}) {
   const browser = {
     SGARegistroValidaciones: validator,
     SGARolValidaciones: validatorRol,
+    SGAActivoValidaciones: validatorActivo,
     sessionStorage: {
       getItem: k => storage.get(k) || null,
       setItem: (k,v) => storage.set(k,v),
@@ -58,7 +65,7 @@ function runPage(page, { response, session, confirmResult = true } = {}) {
     },
     location: { assign: p => history.push(['assign',p]), replace: p => history.push(['replace',p]) },
   };
-  const sandbox = { window: browser, document: { getElementById: id => dom[id] } };
+  const sandbox = { window: browser, document: { getElementById: id => dom[id], createElement: () => makeElement() } };
   const execute = (script) => vm.runInNewContext(
     fs.readFileSync(path.join(__dirname,'../js/',script),'utf8'),sandbox,{ filename:script });
   execute('api.js');

@@ -285,6 +285,8 @@ Actualmente el backend cuenta con:
 
 * Modificacion del rol de un usuario mediante endpoint PATCH protegido (HU-GU-04).
 
+* Registro de activos mediante endpoint POST protegido, con formulario y trazabilidad (HU-GA-01).
+
 Las funcionalidades de gestion de activos, inventario, roles, permisos y auditoria continuaran implementandose por etapas.
 
 ## Seguridad
@@ -471,3 +473,189 @@ Para ejecutar todas las pruebas del frontend: `node --test tests/*.test.cjs`.
 | CA02 Cancelacion | no aplica | si |
 | CA03 No se selecciona un rol | si | si |
 | CA04 Intento de dejar el sistema sin superusuarios | si | si |
+
+
+## Registro de activos (HU-GA-01)
+
+Permite al superusuario registrar un activo mediante un formulario para anadirlo al sistema y permitir su gestion. Cada activo se guarda en la tabla `bien`.
+
+### Endpoints
+
+| Metodo y ruta                  | Quien puede usarlo                    | Para que sirve                                           |
+| ------------------------------ | ------------------------------------- | -------------------------------------------------------- |
+| `POST /api/v1/assets`          | `SUPERUSER`                           | Registrar un activo                                      |
+| `GET /api/v1/assets`           | `SUPERUSER` o permiso `ASSET_READ`    | Lista de activos, para comprobar que el registro quedo   |
+| `GET /api/v1/assets/catalog`   | `SUPERUSER`                           | Opciones de las listas desplegables del formulario       |
+| `GET /api/v1/assets/{id}/audit`| `SUPERUSER`                           | Trazabilidad del activo: quien, cuando y que accion      |
+
+Todos requieren el encabezado `Authorization: Bearer <TOKEN>`.
+
+Solicitud de registro:
+
+```json
+{
+    "assetNumber": "ACT-2026-0001",
+    "description": "Computadora portatil de escritorio",
+    "brand": "Dell",
+    "model": "OptiPlex 7010",
+    "serial": "SN-8841207",
+    "price": 450000.00,
+    "statusId": 1,
+    "locationId": 2,
+    "categoryId": 3,
+    "acquisitionModeId": 4,
+    "currentResponsibleId": null,
+    "notes": "Entregado con cargador"
+}
+```
+
+Respuesta exitosa:
+
+```http
+201 Created
+```
+
+```json
+{
+    "id": 5,
+    "assetNumber": "ACT-2026-0001",
+    "description": "Computadora portatil de escritorio",
+    "brand": "Dell",
+    "model": "OptiPlex 7010",
+    "serial": "SN-8841207",
+    "price": 450000.00,
+    "status": "Bueno",
+    "location": "Laboratorio 1",
+    "category": "Equipo de computo",
+    "acquisitionMode": "Compra",
+    "currentResponsible": null,
+    "decommissioned": false,
+    "notes": "Entregado con cargador"
+}
+```
+
+| Codigo             | Cuando ocurre                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| `201 Created`      | El activo se registro correctamente                                                             |
+| `400 Bad Request`  | Datos obligatorios incompletos, formato invalido, activo ya existente, catalogo o responsable inexistente |
+| `401 Unauthorized` | Falta el token o no es valido                                                                   |
+| `403 Forbidden`    | El usuario autenticado no es `SUPERUSER`                                                        |
+
+### Datos del formulario
+
+| Campo                  | Obligatorio | Regla                                                                  |
+| ---------------------- | ----------- | ---------------------------------------------------------------------- |
+| `assetNumber`          | si          | Unico, hasta 50 caracteres: letras, numeros, punto, guion y barra, sin espacios (`numero_id`) |
+| `description`          | si          | Hasta 500 caracteres                                                   |
+| `categoryId`           | si          | Debe existir en la tabla `categoria`                                   |
+| `statusId`             | si          | Debe existir en la tabla `estado`                                      |
+| `locationId`           | si          | Debe existir en la tabla `ubicacion`                                   |
+| `acquisitionModeId`    | si          | Debe existir en la tabla `modo_adquisicion`                            |
+| `brand`, `model`, `serial` | no      | Hasta 50 caracteres cada uno                                           |
+| `price`                | no          | Punto decimal, maximo 10 enteros y 2 decimales, no negativo            |
+| `currentResponsibleId` | no          | Usuario existente y activo                                             |
+| `notes`                | no          | Hasta 1000 caracteres                                                  |
+
+Al registrar, `dado_baja` queda en `false` y `id_acta` en `NULL`.
+
+### Reglas de negocio
+
+* CA02 y CA03: se validan los datos obligatorios y el formato tanto en la interfaz como en el backend.
+
+* CA04: si el numero de identificacion ya existe se responde `400` con el mensaje "Ya existe un activo con ese numero de identificacion". La restriccion `UNIQUE` de MySQL cubre ademas los registros simultaneos.
+
+* Los datos de catalogo (estado, ubicacion, categoria y modo de adquisicion) y el responsable deben existir en la base de datos.
+
+### Trazabilidad
+
+Cada registro guarda una fila en la tabla `auditoria` dentro de la misma transaccion:
+
+* `accion`: `CREATE_ASSET`
+
+* `tabla_afectada`: `bien`
+
+* `id_usuario`: superusuario que realizo la accion
+
+* `detalles`: empieza con `id_activo=<ID>;` seguido del numero, categoria, estado y ubicacion del activo
+
+* `fecha_hora`: la asigna MySQL con `CURRENT_TIMESTAMP`
+
+El superusuario puede consultarla con `GET /api/v1/assets/{id}/audit`.
+
+### Datos iniciales de catalogos
+
+El formulario necesita opciones en sus listas. Al iniciar, si una de las tablas `estado`, `modo_adquisicion`, `categoria` o `ubicacion` esta vacia, `DataInitializer` inserta valores iniciales:
+
+* Estados: Nuevo, Bueno, Regular, Malo.
+
+* Modos de adquisicion: Compra, Donacion, Traspaso.
+
+* Categorias: Equipo de computo, Mobiliario, Equipo de laboratorio, Otros.
+
+* Ubicacion: Bodega general (Edificio principal).
+
+Si la tabla ya tiene datos no se modifica. Los valores reales de la institucion se administran directamente en la base de datos.
+
+### Interfaz
+
+La pantalla `registrar-activo.html` se abre desde el panel con **Registrar activo** y usa el mismo diseno que el resto de pantallas (`css/app.css`).
+
+* Las listas desplegables se llenan con `GET /api/v1/assets/catalog`.
+
+* CA02 y CA03: se senalan los campos con error junto a cada campo, con un ejemplo de entrada, y no se envia nada al servidor.
+
+* CA01: al registrar se muestra el mensaje de confirmacion con el numero y el ID del activo.
+
+* CA04: el mensaje de rechazo del servidor se muestra en pantalla.
+
+* CA05: **Cancelar** descarta los datos, no envia ninguna solicitud y vuelve al panel.
+
+* Sin sesion se redirige a `index.html`. Si el usuario no es `SUPERUSER` se redirige a `panel.html`.
+
+### Archivos nuevos o modificados
+
+```text
+backend/.../model/Asset.java, AssetStatus.java, Location.java, Category.java, AcquisitionMode.java   (nuevos)
+backend/.../model/Audit.java                            (fecha_hora de solo lectura)
+backend/.../repository/AssetRepository.java y los 4 repositorios de catalogos   (nuevos)
+backend/.../repository/AuditRepository.java y UserRepository.java              (nuevas consultas)
+backend/.../dto/asset/*                                 (nuevos)
+backend/.../service/AssetService.java                   (nuevo)
+backend/.../controller/AssetController.java             (nuevo)
+backend/.../config/DataInitializer.java                 (datos iniciales de catalogos)
+backend/.../config/SecurityConfig.java                  (se permite /registrar-activo.html)
+frontend/registrar-activo.html                          (nuevo)
+frontend/js/registrar-activo.js                         (nuevo)
+frontend/js/registrar-activo-validaciones.js            (nuevo)
+frontend/panel.html                                     (enlace a la nueva pantalla)
+```
+
+### Pruebas unitarias
+
+Backend (JUnit 5 y Mockito, sin base de datos):
+
+```powershell
+.\mvnw.cmd test
+```
+
+* `AssetServiceTest`: CA01, CA02 y CA04 sobre `AssetService`.
+
+* `CreateAssetRequestTest`: CA01, CA02 y CA03 sobre la validacion de los datos.
+
+* `AssetControllerTest`: respuesta 201, endpoint protegido y respuesta 400 de CA04.
+
+Frontend (Node.js 18 o superior, sin navegador), desde la carpeta `frontend`:
+
+```powershell
+node --test tests/registrar-activo.test.cjs
+```
+
+Para ejecutar todas las pruebas del frontend: `node --test tests/*.test.cjs`.
+
+| Criterio | Backend | Frontend |
+| -------- | ------- | -------- |
+| CA01 Se registra de manera exitosa el activo | si | si |
+| CA02 Datos obligatorios incompletos | si | si |
+| CA03 Formato invalido de los datos | si | si |
+| CA04 El activo ya existe | si | si |
+| CA05 Se cancela el registro | no aplica | si |

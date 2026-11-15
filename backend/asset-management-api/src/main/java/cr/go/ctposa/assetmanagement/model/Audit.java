@@ -9,11 +9,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 /**
  * Mapea la tabla "auditoria" que ya existe en control_activos.
- * fecha_hora se omite del mapeo para utilizar el DEFAULT CURRENT_TIMESTAMP
- * definido en MySQL, sin modificar el esquema.
+ * fecha_hora es de solo lectura: MySQL la asigna con el DEFAULT CURRENT_TIMESTAMP
+ * definido en la tabla y Hibernate nunca la inserta ni la modifica.
  */
 @Entity
 @Table(name = "auditoria")
@@ -33,6 +34,9 @@ public class Audit {
 
     @Column(name = "tabla_afectada", nullable = false, length = 50)
     private String affectedTable;
+
+    @Column(name = "fecha_hora", insertable = false, updatable = false)
+    private LocalDateTime dateTime;
 
     @Column(name = "detalles", columnDefinition = "text")
     private String details;
@@ -66,6 +70,10 @@ public class Audit {
 
     public void setAffectedTable(String affectedTable) {
         this.affectedTable = affectedTable;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
     }
 
     public String getDetails() {
