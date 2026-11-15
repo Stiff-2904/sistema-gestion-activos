@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 /** Catalogo de ubicaciones donde se guarda un activo (tabla ubicacion). */
 @Entity
 @Table(name = "ubicacion")
-public class Location {
+public class Location implements CatalogEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,15 +31,32 @@ public class Location {
         this.building = building;
     }
 
+    @Override
     public Integer getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
     public String getBuilding() {
         return building;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getDetail() {
+        return building;
+    }
+
+    @Override
+    public void setDetail(String detail) {
+        this.building = detail;
     }
 }

@@ -21,6 +21,13 @@
           enlace.hidden = usuario.role !== 'SUPERUSER';
         });
       }
+      if (typeof document.querySelectorAll === 'function') {
+        document.querySelectorAll('[data-catalog-link]').forEach(enlace => {
+          enlace.hidden = usuario.role === 'BASIC_USER';
+        });
+      }
+      const enlaceCatalogos = document.getElementById('enlace-catalogos');
+      if (enlaceCatalogos) enlaceCatalogos.hidden = usuario.role === 'BASIC_USER';
       document.getElementById('enlace-registro').hidden = usuario.role !== 'SUPERUSER';
       document.getElementById('enlace-actualizacion').hidden = usuario.role !== 'SUPERUSER';
       const enlaceRol = document.getElementById('enlace-rol');

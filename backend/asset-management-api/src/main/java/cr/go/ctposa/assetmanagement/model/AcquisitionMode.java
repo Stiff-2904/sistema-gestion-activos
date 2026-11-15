@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 /** Catalogo de modos de adquisicion de un activo (tabla modo_adquisicion). */
 @Entity
 @Table(name = "modo_adquisicion")
-public class AcquisitionMode {
+public class AcquisitionMode implements CatalogEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,15 +31,32 @@ public class AcquisitionMode {
         this.description = description;
     }
 
+    @Override
     public Integer getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getDetail() {
+        return description;
+    }
+
+    @Override
+    public void setDetail(String detail) {
+        this.description = detail;
     }
 }

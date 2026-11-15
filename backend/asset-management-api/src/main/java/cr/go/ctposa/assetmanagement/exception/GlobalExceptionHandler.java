@@ -52,6 +52,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
+    @ExceptionHandler(CatalogItemInUseException.class)
+    public ResponseEntity<Map<String, Object>> handleCatalogInUse(CatalogItemInUseException exception) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 409);
+        response.put("error", "Conflict");
+        response.put("message", exception.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(
             IllegalArgumentException exception) {

@@ -4,12 +4,17 @@ const path = require('node:path');
 const validator = require('../js/registro-validaciones.js');
 const validatorRol = require('../js/modificar-rol-validaciones.js');
 const validatorActivo = require('../js/registrar-activo-validaciones.js');
+const validatorCatalogo = require('../js/catalogos-validaciones.js');
 
 function makeElement() {
   const handlers = {};
   const classes = new Set();
   return {
-    value: '', textContent: '', type: 'password', className: '', hidden: false, disabled: false,
+    _texto: '',
+    get textContent() { return this._texto; },
+    // Asignar '' vacia los hijos, igual que en un navegador real
+    set textContent(v) { this._texto = v; if (v === '') this.children.length = 0; },
+    value: '', type: 'password', className: '', hidden: false, disabled: false,
     attrs: {}, handlers, focusCount: 0, resetCount: 0, children: [],
     classList: { add(x) { classes.add(x); }, remove(x) { classes.delete(x); }, contains(x) { return classes.has(x); } },
     setAttribute(k,v) { this.attrs[k] = v; },
@@ -38,6 +43,10 @@ function runPage(page, { response, session, confirmResult = true } = {}) {
     'seccion-eliminar','boton-eliminar','cancelar-eliminacion','mensaje-eliminacion',
     'nombre-eliminar','correo-eliminar','rol-eliminar','estado-eliminar',
     'abrir-eliminacion','panel-eliminacion',
+    'formulario-catalogo','nombre-catalogo','detalle-catalogo','etiqueta-detalle','error-nombre-catalogo',
+    'error-detalle-catalogo','boton-guardar-catalogo','cancelar-catalogo','mensaje-catalogo','titulo-catalogo',
+    'cuerpo-tabla','estado-lista','enlace-catalogos','pestana-ubicaciones','pestana-estados',
+    'pestana-categorias','pestana-modos-adquisicion',
     'formulario-activo','mensaje-activo','boton-registrar-activo','cancelar-activo',
     ...['numero-activo','descripcion-activo','marca-activo','modelo-activo','serie-activo','precio-activo',
       'estado-activo','ubicacion-activo','categoria-activo','modo-activo','responsable-activo',
@@ -52,6 +61,7 @@ function runPage(page, { response, session, confirmResult = true } = {}) {
     SGARegistroValidaciones: validator,
     SGARolValidaciones: validatorRol,
     SGAActivoValidaciones: validatorActivo,
+    SGACatalogoValidaciones: validatorCatalogo,
     sessionStorage: {
       getItem: k => storage.get(k) || null,
       setItem: (k,v) => storage.set(k,v),

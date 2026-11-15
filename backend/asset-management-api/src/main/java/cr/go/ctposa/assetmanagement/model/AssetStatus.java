@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 /** Catalogo de estados fisicos de un activo (tabla estado). */
 @Entity
 @Table(name = "estado")
-public class AssetStatus {
+public class AssetStatus implements CatalogEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,15 +31,32 @@ public class AssetStatus {
         this.description = description;
     }
 
+    @Override
     public Integer getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getDetail() {
+        return description;
+    }
+
+    @Override
+    public void setDetail(String detail) {
+        this.description = detail;
     }
 }

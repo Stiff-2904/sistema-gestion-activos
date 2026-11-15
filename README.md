@@ -594,7 +594,7 @@ El formulario necesita opciones en sus listas. Al iniciar, si una de las tablas 
 
 * Ubicacion: Bodega general (Edificio principal).
 
-Si la tabla ya tiene datos no se modifica. Los valores reales de la institucion se administran directamente en la base de datos.
+Si la tabla ya tiene datos no se modifica. Los valores reales de la institucion se administran desde la pantalla **Catalogos** (ver HU-GA-02).
 
 ### Interfaz
 
@@ -659,3 +659,66 @@ Para ejecutar todas las pruebas del frontend: `node --test tests/*.test.cjs`.
 | CA03 Formato invalido de los datos | si | si |
 | CA04 El activo ya existe | si | si |
 | CA05 Se cancela el registro | no aplica | si |
+
+## HU-GA-02 - Administrar catalogos (propuesta)
+
+Permite listar, crear, editar y eliminar los elementos de `ubicacion`, `estado`, `categoria` y `modo_adquisicion`. El numero de la historia es provisional: cambielo si el backlog asigna otro.
+
+### Permisos y reglas
+
+* Pueden usarlo `SUPERUSER` e `INTERMEDIATE_USER`. `BASIC_USER` recibe `403` en el API y se redirige a `panel.html` en la interfaz.
+
+* CA05: un elemento solo se elimina si ningun activo lo usa. Si esta en uso se responde `409` con la cantidad de registros asociados. Ademas, si la ubicacion aparece en `historial_movimiento` o `verificacion`, la restriccion `ON DELETE RESTRICT` de MySQL tambien se traduce a `409`.
+
+* CA03: el nombre es obligatorio, no puede repetirse (sin distinguir mayusculas) y respeta el largo de la columna. En ubicacion el edificio es obligatorio.
+
+* Cada crear, editar o eliminar guarda una fila en `auditoria` (`CREATE_CATALOG`, `UPDATE_CATALOG`, `DELETE_CATALOG`).
+
+### API
+
+| Metodo | Ruta | Resultado |
+| ------ | ---- | --------- |
+| GET | `/api/v1/catalogs/{tipo}` | 200 con lista y cantidad de activos que usan cada elemento |
+| POST | `/api/v1/catalogs/{tipo}` | 201 elemento creado |
+| PUT | `/api/v1/catalogs/{tipo}/{id}` | 200 elemento actualizado |
+| DELETE | `/api/v1/catalogs/{tipo}/{id}` | 200, o 409 si esta en uso |
+
+`{tipo}` puede ser `ubicaciones`, `estados`, `categorias` o `modos-adquisicion`.
+
+### Interfaz
+
+La pantalla `catalogos.html` se abre desde el panel (tarjeta **Administrar catalogos** y menu lateral). Tiene una pestana por catalogo, una tabla con la cantidad de activos que usa cada elemento y un formulario para agregar o editar. El boton **Eliminar** se deshabilita cuando el elemento esta en uso y pide confirmacion antes de borrar. El formulario de registrar activo incluye un enlace a esta pantalla bajo Ubicacion.
+
+### Archivos nuevos o modificados
+
+```text
+backend/.../model/CatalogEntity.java, CatalogType.java      (nuevos)
+backend/.../model/Location.java, Category.java, AcquisitionMode.java, AssetStatus.java   (setters y CatalogEntity)
+backend/.../repository/CatalogRepository.java               (nuevo)
+backend/.../repository/AssetRepository.java y los 4 repositorios de catalogos
+backend/.../dto/catalog/*                                   (nuevos)
+backend/.../exception/CatalogItemInUseException.java        (nuevo) y GlobalExceptionHandler.java
+backend/.../service/CatalogService.java                     (nuevo)
+backend/.../controller/CatalogController.java               (nuevo)
+backend/.../config/SecurityConfig.java                      (se permite /catalogos.html)
+frontend/catalogos.html, css/catalogos.css                  (nuevos)
+frontend/js/catalogos.js, js/catalogos-validaciones.js      (nuevos)
+frontend/panel.html, js/panel.js, registrar-activo.html     (enlaces)
+frontend/tests/catalogos.test.cjs y tests/util.cjs
+```
+
+### Pruebas unitarias
+
+Backend: `CatalogServiceTest`, `CatalogControllerTest`, `CatalogEntryRequestTest` y `CatalogTypeTest` con `.\mvnw.cmd test`.
+
+Frontend: `node --test tests/catalogos.test.cjs` desde la carpeta `frontend`.
+
+| Criterio | Backend | Frontend |
+| -------- | ------- | -------- |
+| CA01 Listar elementos con su uso | si | si |
+| CA02 Crear un elemento | si | si |
+| CA03 Datos invalidos o repetidos | si | si |
+| CA04 Eliminar un elemento sin registros | si | si |
+| CA05 No eliminar un elemento en uso | si | si |
+| CA06 El usuario basico no tiene acceso | si | si |
+| CA07 Editar un elemento | si | si |
