@@ -30,64 +30,59 @@ public class SecurityConfig {
             throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable())
 
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/panel.html", "/crear-usuario.html", "/update_user.html",
-                        "/modificar-rol.html", "/estado-usuario.html", "/eliminar-usuario.html", "/registrar-activo.html", "/catalogos.html", "/css/**", "/js/**", "/favicon.ico", "/error").permitAll()
-                .requestMatchers("/api/v1/auth/login").permitAll()
-                .anyRequest().authenticated()
-            )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/index.html", "/panel.html", "/crear-usuario.html", "/update_user.html",
+                                "/modificar-rol.html", "/estado-usuario.html", "/eliminar-usuario.html",
+                                "/registrar-activo.html", "/consultar-activo.html", "/catalogos.html", "/css/**",
+                                "/js/**", "/favicon.ico", "/error")
+                        .permitAll()
+                        .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers("/consultar-activo.html").permitAll()
+                        .anyRequest().authenticated())
 
-            .exceptionHandling(exception -> exception
+                .exceptionHandling(exception -> exception
 
-                .authenticationEntryPoint(
-                    (request, response, authException) -> {
+                        .authenticationEntryPoint(
+                                (request, response, authException) -> {
 
-                        response.setStatus(
-                                HttpServletResponse.SC_UNAUTHORIZED
-                        );
+                                    response.setStatus(
+                                            HttpServletResponse.SC_UNAUTHORIZED);
 
-                        response.setContentType(
-                                "application/json"
-                        );
+                                    response.setContentType(
+                                            "application/json");
 
-                        response.getWriter().write("""
-                            {
-                                "status": 401,
-                                "error": "Unauthorized",
-                                "message": "Se requiere autenticacion"
-                            }
-                            """);
-                    }
-                )
+                                    response.getWriter().write("""
+                                            {
+                                                "status": 401,
+                                                "error": "Unauthorized",
+                                                "message": "Se requiere autenticacion"
+                                            }
+                                            """);
+                                })
 
-                .accessDeniedHandler(
-                    (request, response, accessDeniedException) -> {
+                        .accessDeniedHandler(
+                                (request, response, accessDeniedException) -> {
 
-                        response.setStatus(
-                                HttpServletResponse.SC_FORBIDDEN
-                        );
+                                    response.setStatus(
+                                            HttpServletResponse.SC_FORBIDDEN);
 
-                        response.setContentType(
-                                "application/json"
-                        );
+                                    response.setContentType(
+                                            "application/json");
 
-                        response.getWriter().write("""
-                            {
-                                "status": 403,
-                                "error": "Forbidden",
-                                "message": "No tiene permisos para realizar esta operacion"
-                            }
-                            """);
-                    }
-                )
-            )
+                                    response.getWriter().write("""
+                                            {
+                                                "status": 403,
+                                                "error": "Forbidden",
+                                                "message": "No tiene permisos para realizar esta operacion"
+                                            }
+                                            """);
+                                }))
 
-            .addFilterBefore(
-                new JwtAuthenticationFilter(jwtService, userRepository),
-                UsernamePasswordAuthenticationFilter.class
-            );
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(jwtService, userRepository),
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

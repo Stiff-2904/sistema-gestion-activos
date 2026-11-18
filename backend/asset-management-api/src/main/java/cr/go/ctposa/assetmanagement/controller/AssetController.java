@@ -2,6 +2,7 @@ package cr.go.ctposa.assetmanagement.controller;
 
 import cr.go.ctposa.assetmanagement.dto.asset.AssetAuditResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.AssetCatalogResponse;
+import cr.go.ctposa.assetmanagement.dto.asset.AssetDetailResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.AssetResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.CreateAssetRequest;
 import cr.go.ctposa.assetmanagement.service.AssetService;
@@ -40,6 +41,13 @@ public class AssetController {
     @PreAuthorize("hasRole('SUPERUSER') or hasAuthority('ASSET_READ')")
     public ResponseEntity<List<AssetResponse>> listAssets() {
         return ResponseEntity.ok(assetService.listAssets());
+    }
+
+    /** HU-GA-02: obtener el detalle de un activo existente, 404 cuando no exista. */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('SUPERUSER') or hasAuthority('ASSET_READ')")
+    public ResponseEntity<AssetDetailResponse> getAssetDetail(@PathVariable Integer id) {
+        return ResponseEntity.ok(assetService.getAssetDetail(id));
     }
 
     /** Opciones para las listas desplegables del formulario de registro. */

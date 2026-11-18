@@ -21,6 +21,19 @@
           enlace.hidden = usuario.role !== 'SUPERUSER';
         });
       }
+      if (typeof document.querySelectorAll === 'function') {
+        document.querySelectorAll('[data-catalog-link]').forEach(enlace => {
+          enlace.hidden = usuario.role === 'BASIC_USER';
+        });
+      }
+      const enlaceCatalogos = document.getElementById('enlace-catalogos');
+      if (enlaceCatalogos) enlaceCatalogos.hidden = usuario.role === 'BASIC_USER';
+      // La sección Gestión de activos es accesible para consulta en todos los perfiles.
+      // Solo la tarjeta de registro requiere SUPERUSER.
+      const enlaceRegistrarActivo = document.getElementById('enlace-activo');
+      if (enlaceRegistrarActivo) enlaceRegistrarActivo.hidden = usuario.role !== 'SUPERUSER';
+      const contadorActivos = document.getElementById('contador-funciones-activos');
+      if (contadorActivos) contadorActivos.textContent = usuario.role === 'SUPERUSER' ? '2 FUNCIONES' : '1 FUNCIÓN';
       document.getElementById('enlace-registro').hidden = usuario.role !== 'SUPERUSER';
       document.getElementById('enlace-actualizacion').hidden = usuario.role !== 'SUPERUSER';
       const enlaceRol = document.getElementById('enlace-rol');

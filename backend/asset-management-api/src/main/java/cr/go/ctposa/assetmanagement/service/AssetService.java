@@ -2,9 +2,11 @@ package cr.go.ctposa.assetmanagement.service;
 
 import cr.go.ctposa.assetmanagement.dto.asset.AssetAuditResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.AssetCatalogResponse;
+import cr.go.ctposa.assetmanagement.dto.asset.AssetDetailResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.AssetResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.CatalogItemResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.CreateAssetRequest;
+import cr.go.ctposa.assetmanagement.exception.AssetNotFoundException;
 import cr.go.ctposa.assetmanagement.model.AcquisitionMode;
 import cr.go.ctposa.assetmanagement.model.Asset;
 import cr.go.ctposa.assetmanagement.model.AssetStatus;
@@ -138,6 +140,17 @@ public class AssetService {
                 .toList();
     }
 
+    /** HU-GA-02 / CA01-CA02: consulta detallada, sin cambios ni auditoria de escritura. */
+    @Transactional(readOnly = true)
+    public AssetDetailResponse getAssetDetail(Integer id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("El ID del activo debe ser un numero positivo");
+        }
+        Asset asset = assetRepository.findById(id)
+                .orElseThrow(() -> new AssetNotFoundException(id));
+        return toDetailResponse(asset);
+    }
+
     /** Opciones de las listas desplegables del formulario. */
     @Transactional(readOnly = true)
     public AssetCatalogResponse getCatalog() {
@@ -197,6 +210,29 @@ public class AssetService {
             return null;
         }
         return value.trim();
+    }
+
+    private AssetDetailResponse toDetailResponse(Asset asset) {
+        return new AssetDetailResponse(
+                asset.getId(),
+                asset.getAssetNumber(),
+                asset.getDescription(),
+                asset.getBrand(),
+                asset.getModel(),
+                asset.getSerial(),
+                asset.getPrice(),
+                asset.getStatus().getId(),
+                asset.getStatus().getName(),
+                asset.getLocation().getId(),
+                asset.getLocation().getName(),
+                asset.getCategory().getId(),
+                asset.getCategory().getName(),
+                asset.getAcquisitionMode().getId(),
+                asset.getAcquisitionMode().getName(),
+                asset.getCurrentResponsible() == null ? null : asset.getCurrentResponsible().getId(),
+                asset.getCurrentResponsible() == null ? null : asset.getCurrentResponsible().getName(),
+                asset.getDecommissioned(),
+                asset.getNotes());
     }
 
     private AssetResponse toResponse(Asset asset) {

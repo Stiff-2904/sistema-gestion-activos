@@ -17,6 +17,7 @@
 <a href="update_user.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">✎</span>Actualizar datos</a>
 <a href="modificar-rol.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">♙</span>Modificar roles</a>
 <a href="estado-usuario.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">◉</span>Estados y eliminación</a>
+<a href="consultar-activo.html" class="nav-link"><span class="nav-icon" aria-hidden="true">⌕</span>Consultar activos</a>
 <a href="registrar-activo.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">▣</span>Registrar activo</a>
 <a href="catalogos.html" data-catalog-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">☰</span>Catálogos</a></nav>
     <div class="sidebar-bottom">
@@ -41,10 +42,11 @@
       <a href="estado-usuario.html" id="enlace-estado" class="action-card card"><span class="action-icon amber" aria-hidden="true">◉</span><div><h3>Estados y eliminación</h3><p>Active, inactive o elimine cuentas desde un único espacio seguro.</p><span class="card-link">Gestionar cuentas →</span></div></a>
     </div>
   </section>
-  <section data-admin-link hidden aria-label="Gestión de activos" style="margin-top:25px">
-    <div class="section-heading"><div><h2>Gestión de activos</h2><p>Registre y administre los bienes de la institución.</p></div><span class="eyebrow">1 FUNCIÓN</span></div>
+  <section aria-label="Gestión de activos" style="margin-top:25px">
+    <div class="section-heading"><div><h2>Gestión de activos</h2><p>Registre y administre los bienes de la institución.</p></div><span class="eyebrow" id="contador-funciones-activos">1 FUNCIÓN</span></div>
     <div class="action-grid">
-      <a href="registrar-activo.html" id="enlace-activo" class="action-card card"><span class="action-icon" aria-hidden="true">▣</span><div><h3>Registrar activo</h3><p>Añada un nuevo activo al sistema mediante un formulario.</p><span class="card-link">Registrar activo →</span></div></a>
+      <a href="registrar-activo.html" id="enlace-activo" data-admin-link hidden class="action-card card"><span class="action-icon" aria-hidden="true">▣</span><div><h3>Registrar activo</h3><p>Añada un nuevo activo al sistema mediante un formulario.</p><span class="card-link">Registrar activo →</span></div></a>
+      <a href="consultar-activo.html" id="enlace-consulta-activo" class="action-card card"><span class="action-icon blue" aria-hidden="true">⌕</span><div><h3>Consultar activo</h3><p>Localice un activo y revise su información detallada sin modificarla.</p><span class="card-link">Consultar activo →</span></div></a>
     </div>
   </section>
   <section data-catalog-link hidden aria-label="Catálogos" style="margin-top:25px">

@@ -1,0 +1,22 @@
+/* HU-GA-02: interfaz responsiva de consulta (solo lectura). */
+.consulta-card,.consulta-detalle,.consulta-listado{margin-bottom:22px}
+.consulta-controles{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.consulta-controles .grupo-campo{flex:1;min-width:200px;margin:0}
+.consulta-controles button{min-height:47px;padding:0 22px}
+.consulta-controles input{width:100%}
+.consulta-detalle .card-head p{overflow-wrap:anywhere}
+.detalle-grid{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.detalle-item{border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:14px;min-width:0}
+.detalle-item dt{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:7px}
+.detalle-item dd{font-size:14px;font-weight:600;margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.detalle-item.detalle-ancho{grid-column:1/-1}
+.consulta-tabla{overflow-x:auto}
+.consulta-tabla table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+.consulta-tabla th,.consulta-tabla td{padding:13px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.consulta-tabla th{font-size:11px;color:var(--muted)}
+.consulta-tabla td:nth-child(3){max-width:280px;overflow-wrap:anywhere}
+.consulta-ver{border:1px solid var(--teal);color:var(--teal-dark);background:var(--teal-light);padding:8px 12px;border-radius:9px;font-weight:700}
+.consulta-ver:hover{background:#d3f0e7}
+.consulta-mensaje-listado{color:var(--muted);font-size:13px}
+@media(max-width:850px){.detalle-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:570px){.detalle-grid{grid-template-columns:1fr}.consulta-controles button{flex:1}}
