@@ -6,17 +6,15 @@
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/consultar-activo.css">
   <script src="js/api.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
   <script src="js/consultar-activo.js" defer></script>
 </head>
 <body class="app-page"><div class="app-shell">
   <aside class="sidebar" aria-label="Menú principal">
     <a href="panel.html" class="brand"><span class="brand-mark" aria-hidden="true">S</span><span><strong>SGA · CTP Osa</strong><small>Plataforma institucional</small></span></a>
     <div class="sidebar-label">NAVEGACIÓN</div>
-    <nav class="nav-list" aria-label="Gestión de activos">
-      <a href="panel.html" class="nav-link"><span class="nav-icon" aria-hidden="true">▦</span>Panel principal</a>
-      <a href="consultar-activo.html" class="nav-link active" aria-current="page"><span class="nav-icon" aria-hidden="true">⌕</span>Consultar activos</a>
-      <a href="registrar-activo.html" id="enlace-registrar" hidden class="nav-link"><span class="nav-icon" aria-hidden="true">▣</span>Registrar activo</a>
-    </nav>
+    <button type="button" class="sidebar-menu-toggle" id="sidebar-menu-toggle" aria-controls="navegacion-principal" aria-expanded="false"><span aria-hidden="true">☰</span> Menú de navegación <span class="sidebar-menu-arrow" aria-hidden="true">⌄</span></button>
+    <nav class="nav-list" id="navegacion-principal" aria-label="Navegación principal"></nav>
     <div class="sidebar-bottom"><div class="sidebar-tip"><strong>Consulta de solo lectura</strong><p>La información mostrada se obtiene del registro institucional. Consultar o cancelar no modifica los activos.</p></div><div class="sidebar-footer">SISTEMA DE GESTIÓN DE ACTIVOS<br>ENTORNO INSTITUCIONAL</div></div>
   </aside>
   <div class="workspace">
@@ -40,7 +38,7 @@
       </section>
       <section class="card consulta-listado" aria-labelledby="titulo-listado">
         <div class="card-head"><h2 id="titulo-listado">Activos registrados</h2><p>Seleccione «Ver detalle» para consultar un registro individual.</p></div>
-        <div class="card-body"><p id="mensaje-listado" role="status" aria-live="polite" class="consulta-mensaje-listado">Cargando activos...</p><div class="consulta-tabla"><table id="tabla-activos" hidden><thead><tr><th>ID</th><th>Número</th><th>Descripción</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="cuerpo-activos"></tbody></table></div></div>
+        <div class="card-body"><p id="mensaje-listado" role="status" aria-live="polite" class="consulta-mensaje-listado">Cargando activos...</p><div class="consulta-tabla"><table id="tabla-activos" hidden><thead><tr><th>ID</th><th>Número</th><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="cuerpo-activos"></tbody></table></div></div>
       </section>
     </main>
     <footer class="workspace-footer"><span>SGA · CTP Osa</span><span>Consulta para personal autorizado</span></footer>

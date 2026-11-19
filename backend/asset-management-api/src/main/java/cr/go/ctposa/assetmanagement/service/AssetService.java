@@ -6,6 +6,7 @@ import cr.go.ctposa.assetmanagement.dto.asset.AssetDetailResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.AssetResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.CatalogItemResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.CreateAssetRequest;
+import cr.go.ctposa.assetmanagement.dto.asset.UpdateAssetRequest;
 import cr.go.ctposa.assetmanagement.exception.AssetNotFoundException;
 import cr.go.ctposa.assetmanagement.model.AcquisitionMode;
 import cr.go.ctposa.assetmanagement.model.Asset;
@@ -22,6 +23,8 @@ import cr.go.ctposa.assetmanagement.repository.CategoryRepository;
 import cr.go.ctposa.assetmanagement.repository.LocationRepository;
 import cr.go.ctposa.assetmanagement.repository.UserRepository;
 import java.util.List;
+import java.util.Objects;
+import java.util.StringJoiner;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -149,6 +152,96 @@ public class AssetService {
         Asset asset = assetRepository.findById(id)
                 .orElseThrow(() -> new AssetNotFoundException(id));
         return toDetailResponse(asset);
+    }
+
+    /** HU-GA-03: actualizacion y trazabilidad atomicas; la baja no es editable aqui. */
+    @Transactional
+    public AssetDetailResponse updateAsset(Integer id, UpdateAssetRequest request) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("El ID del activo debe ser un numero positivo");
+        }
+        Asset asset = assetRepository.findById(id)
+                .orElseThrow(() -> new AssetNotFoundException(id));
+        String numero = request.getAssetNumber().trim();
+        if (!numero.equals(asset.getAssetNumber()) && assetRepository.existsByAssetNumber(numero)) {
+            throw new IllegalArgumentException("Ya existe un activo con ese numero de identificacion");
+        }
+
+        AssetStatus estado = statusRepository.findById(request.getStatusId())
+                .orElseThrow(() -> new IllegalArgumentException("El estado indicado no existe"));
+        Location ubicacion = locationRepository.findById(request.getLocationId())
+                .orElseThrow(() -> new IllegalArgumentException("La ubicacion indicada no existe"));
+        Category categoria = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("La categoria indicada no existe"));
+        AcquisitionMode modo = acquisitionModeRepository.findById(request.getAcquisitionModeId())
+                .orElseThrow(() -> new IllegalArgumentException("El modo de adquisicion indicado no existe"));
+        User responsable = null;
+        if (request.getCurrentResponsibleId() != null) {
+            responsable = userRepository.findById(request.getCurrentResponsibleId())
+                    .orElseThrow(() -> new IllegalArgumentException("El responsable indicado no existe"));
+            if (!Boolean.TRUE.equals(responsable.getActive())) {
+                throw new IllegalArgumentException("El responsable indicado esta inactivo");
+            }
+        }
+
+        // Identificamos primero al usuario; si falla, no se toca el activo.
+        User actor = currentActor();
+        StringJoiner cambios = new StringJoiner("; ");
+        agregarCambio(cambios, "numero_id", asset.getAssetNumber(), numero);
+        agregarCambio(cambios, "descripcion", asset.getDescription(), request.getDescription().trim());
+        agregarCambio(cambios, "marca", asset.getBrand(), blankToNull(request.getBrand()));
+        agregarCambio(cambios, "modelo", asset.getModel(), blankToNull(request.getModel()));
+        agregarCambio(cambios, "serie", asset.getSerial(), blankToNull(request.getSerial()));
+        agregarCambio(cambios, "precio", asset.getPrice(), request.getPrice());
+        agregarCambio(cambios, "estado_id", asset.getStatus().getId(), estado.getId());
+        agregarCambio(cambios, "ubicacion_id", asset.getLocation().getId(), ubicacion.getId());
+        agregarCambio(cambios, "categoria_id", asset.getCategory().getId(), categoria.getId());
+        agregarCambio(cambios, "modo_id", asset.getAcquisitionMode().getId(), modo.getId());
+        agregarCambio(cambios, "responsable_id",
+                asset.getCurrentResponsible() == null ? null : asset.getCurrentResponsible().getId(),
+                responsable == null ? null : responsable.getId());
+        agregarCambio(cambios, "observaciones", asset.getNotes(), blankToNull(request.getNotes()));
+
+        asset.setAssetNumber(numero);
+        asset.setDescription(request.getDescription().trim());
+        asset.setBrand(blankToNull(request.getBrand()));
+        asset.setModel(blankToNull(request.getModel()));
+        asset.setSerial(blankToNull(request.getSerial()));
+        asset.setPrice(request.getPrice());
+        asset.setStatus(estado);
+        asset.setLocation(ubicacion);
+        asset.setCategory(categoria);
+        asset.setAcquisitionMode(modo);
+        asset.setCurrentResponsible(responsable);
+        asset.setNotes(blankToNull(request.getNotes()));
+        // No se modifica dado_baja: corresponde a otra operacion de negocio.
+
+        if (cambios.length() == 0) return toDetailResponse(asset);
+        Asset guardado;
+        try {
+            guardado = assetRepository.save(asset);
+        } catch (DataIntegrityViolationException ex) {
+            throw new IllegalArgumentException("No se pudo actualizar: el numero de identificacion ya existe");
+        }
+        Audit auditoria = new Audit();
+        auditoria.setUser(actor);
+        auditoria.setAction("UPDATE_ASSET");
+        auditoria.setAffectedTable(AUDIT_TABLE);
+        auditoria.setDetails(auditPrefix(guardado.getId()) + " Cambios: " + cambios);
+        auditRepository.save(auditoria);
+        return toDetailResponse(guardado);
+    }
+
+    private void agregarCambio(StringJoiner cambios, String campo, Object antes, Object despues) {
+        if (!Objects.equals(antes, despues)) {
+            cambios.add(campo + " [" + valorAuditoria(antes) + " -> " + valorAuditoria(despues) + "]");
+        }
+    }
+
+    private String valorAuditoria(Object valor) {
+        if (valor == null) return "(vacio)";
+        return String.valueOf(valor).replace("\r", " ").replace("\n", " ")
+                .replace(";", ",").replace("[", "(").replace("]", ")");
     }
 
     /** Opciones de las listas desplegables del formulario. */

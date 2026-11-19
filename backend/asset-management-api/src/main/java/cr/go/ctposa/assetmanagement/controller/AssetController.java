@@ -5,6 +5,7 @@ import cr.go.ctposa.assetmanagement.dto.asset.AssetCatalogResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.AssetDetailResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.AssetResponse;
 import cr.go.ctposa.assetmanagement.dto.asset.CreateAssetRequest;
+import cr.go.ctposa.assetmanagement.dto.asset.UpdateAssetRequest;
 import cr.go.ctposa.assetmanagement.service.AssetService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -48,6 +49,14 @@ public class AssetController {
     @PreAuthorize("hasRole('SUPERUSER') or hasAuthority('ASSET_READ')")
     public ResponseEntity<AssetDetailResponse> getAssetDetail(@PathVariable Integer id) {
         return ResponseEntity.ok(assetService.getAssetDetail(id));
+    }
+
+    /** HU-GA-03: solo el SUPERUSER puede actualizar un activo existente. */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('SUPERUSER')")
+    public ResponseEntity<AssetDetailResponse> updateAsset(
+            @PathVariable Integer id, @Valid @RequestBody UpdateAssetRequest request) {
+        return ResponseEntity.ok(assetService.updateAsset(id, request));
     }
 
     /** Opciones para las listas desplegables del formulario de registro. */

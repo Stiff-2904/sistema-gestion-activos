@@ -32,8 +32,10 @@
       // Solo la tarjeta de registro requiere SUPERUSER.
       const enlaceRegistrarActivo = document.getElementById('enlace-activo');
       if (enlaceRegistrarActivo) enlaceRegistrarActivo.hidden = usuario.role !== 'SUPERUSER';
+      const enlaceActualizarActivo = document.getElementById('enlace-actualizar-activo');
+      if (enlaceActualizarActivo) enlaceActualizarActivo.hidden = usuario.role !== 'SUPERUSER';
       const contadorActivos = document.getElementById('contador-funciones-activos');
-      if (contadorActivos) contadorActivos.textContent = usuario.role === 'SUPERUSER' ? '2 FUNCIONES' : '1 FUNCIÓN';
+      if (contadorActivos) contadorActivos.textContent = usuario.role === 'SUPERUSER' ? '3 FUNCIONES' : '1 FUNCIÓN';
       document.getElementById('enlace-registro').hidden = usuario.role !== 'SUPERUSER';
       document.getElementById('enlace-actualizacion').hidden = usuario.role !== 'SUPERUSER';
       const enlaceRol = document.getElementById('enlace-rol');

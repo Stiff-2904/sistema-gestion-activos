@@ -5,6 +5,7 @@
   <title>Registrar usuario | Sistema de Gestión de Activos</title>
   <link rel="stylesheet" href="css/app.css">
   <script src="js/api.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
   <script src="js/registro-validaciones.js" defer></script><script src="js/crear-usuario.js" defer></script>
 </head>
 <body class="app-page">
@@ -12,11 +13,8 @@
   <aside class="sidebar" aria-label="Menú principal">
     <a href="panel.html" class="brand"><span class="brand-mark" aria-hidden="true">S</span><span><strong>SGA · CTP Osa</strong><small>Plataforma institucional</small></span></a>
     <div class="sidebar-label">NAVEGACIÓN</div>
-    <nav class="nav-list" aria-label="Administración de usuarios"><a href="panel.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">▦</span>Panel principal</a>
-<a href="crear-usuario.html" class="nav-link active" aria-current="page"><span class="nav-icon" aria-hidden="true">＋</span>Registrar usuario</a>
-<a href="update_user.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">✎</span>Actualizar datos</a>
-<a href="modificar-rol.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">♙</span>Modificar roles</a>
-<a href="estado-usuario.html" class="nav-link " ><span class="nav-icon" aria-hidden="true">◉</span>Estados y eliminación</a></nav>
+    <button type="button" class="sidebar-menu-toggle" id="sidebar-menu-toggle" aria-controls="navegacion-principal" aria-expanded="false"><span aria-hidden="true">☰</span> Menú de navegación <span class="sidebar-menu-arrow" aria-hidden="true">⌄</span></button>
+    <nav class="nav-list" id="navegacion-principal" aria-label="Navegación principal"></nav>
     <div class="sidebar-bottom">
       <div class="sidebar-tip"><span class="tip-icon" aria-hidden="true">✦</span><strong>Gestión responsable</strong><p>Compruebe la información y los permisos antes de guardar cualquier modificación.</p></div>
       <div class="sidebar-footer">SISTEMA DE GESTIÓN DE ACTIVOS<br>ENTORNO INSTITUCIONAL</div>

@@ -54,6 +54,21 @@ svg { display: block; }
 .page-intro h1 { font-size: clamp(28px,3vw,40px); line-height:1.17; letter-spacing:-.045em; color:var(--ink-strong); margin:9px 0 11px; }
 .page-intro p { color:var(--muted); max-width:650px; font-size: 14px; margin:0; line-height:1.7; }
 .intro-symbol { width: 66px; height:66px; border-radius:20px; background:var(--teal-light); display:grid; place-items:center; color:var(--teal-dark); font-size:32px; flex-shrink:0; }
+/* Menú lateral único y desplegable. Conserva la paleta institucional. */
+.sidebar-menu-toggle { display:none; }
+.nav-group { min-width:0; }
+.nav-category { display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+  padding:12px 14px; border:1px solid transparent; border-radius:11px; background:transparent;
+  color:#c0d4e4; font-size:13px; font-weight:700; transition:background .2s,color .2s; }
+.nav-category:hover,.nav-category.is-open { background:#19304d; color:white; }
+.nav-category.is-open:has(+ .nav-submenu .nav-link.active) { background:#203b4f; color:#e2fff6; }
+.nav-category-label { flex:1; }
+.nav-chevron { display:block; color:#88aabf; font-size:20px; line-height:1; transform:rotate(0); transition:transform .2s; }
+.nav-category[aria-expanded="true"] .nav-chevron { transform:rotate(180deg); }
+.nav-submenu { display:flex; flex-direction:column; gap:3px; margin:2px 0 8px 24px; padding:2px 0 2px 8px; border-left:1px solid #28445d; }
+.nav-submenu .nav-link { font-size:12px; padding:10px 9px; gap:8px; }
+.nav-submenu .nav-icon { font-size:15px; width:19px; }
+.nav-group [hidden] { display:none !important; }
 /* Cards and educational scaffolding */
 .card { background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
 .card-head { padding: 25px 29px 20px; border-bottom:1px solid #eaf0f4; }
@@ -188,11 +203,18 @@ svg { display: block; }
 @media (max-width:750px) {
   .app-shell { display:block; }
   .sidebar { position:relative; top:auto; height:auto; overflow:visible; padding:12px 17px; }
-  .sidebar .brand { padding:0; }
+  .sidebar .brand { padding:0 0 9px; }
   .sidebar-label,.sidebar-bottom { display:none; }
-  .nav-list { flex-direction:row; overflow:auto; padding:13px 0 0; gap:6px; scrollbar-width:thin; }
-  .nav-link { white-space:nowrap; font-size:11px; padding:9px 11px; gap:6px; }
-  .nav-icon { font-size:15px; width:auto; }
+  .sidebar-menu-toggle { width:100%; display:flex; align-items:center; gap:10px; background:#173047;
+    color:#e5f7f3; border:1px solid #325467; border-radius:10px; padding:11px 13px;
+    text-align:left; font-size:13px; font-weight:750; }
+  .sidebar-menu-arrow { margin-left:auto; font-size:19px; transition:transform .2s; }
+  .sidebar-menu-toggle[aria-expanded="true"] .sidebar-menu-arrow { transform:rotate(180deg); }
+  .nav-list { display:none; flex-direction:column; overflow:visible; padding:10px 0 3px; gap:4px; }
+  .sidebar.nav-mobile-open .nav-list { display:flex; }
+  .nav-link,.nav-category { white-space:normal; font-size:13px; padding:10px 12px; gap:9px; }
+  .nav-submenu { margin-left:20px; padding-left:9px; }
+  .nav-icon { font-size:16px; width:19px; }
   .topbar { min-height:56px; padding:12px 20px; }
   .workspace-main { padding:27px 19px 38px; }
   .workspace-footer { padding:17px 19px; }

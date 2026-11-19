@@ -104,6 +104,8 @@
   if (sesion.role === 'SUPERUSER') {
     const registrar = document.getElementById('enlace-registrar');
     if (registrar) registrar.hidden = false;
+    const actualizar = document.getElementById('enlace-actualizar');
+    if (actualizar) actualizar.hidden = false;
   }
 
   async function cargarListado() {
@@ -131,6 +133,13 @@
           consultar(activo.id);
         });
         celda.appendChild(ver);
+        if (sesion.role === 'SUPERUSER') {
+          const editar = document.createElement('a');
+          editar.href = 'actualizar-activo.html?id=' + encodeURIComponent(String(activo.id));
+          editar.className = 'consulta-ver consulta-editar';
+          editar.textContent = 'Actualizar';
+          celda.appendChild(editar);
+        }
         fila.appendChild(celda);
         cuerpo.appendChild(fila);
       }

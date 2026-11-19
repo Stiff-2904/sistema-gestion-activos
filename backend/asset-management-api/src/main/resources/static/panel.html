@@ -5,6 +5,7 @@
   <title>Panel principal | Sistema de Gestión de Activos</title>
   <link rel="stylesheet" href="css/app.css">
   <script src="js/api.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
   <script src="js/panel.js" defer></script>
 </head>
 <body class="app-page">
@@ -12,14 +13,8 @@
   <aside class="sidebar" aria-label="Menú principal">
     <a href="panel.html" class="brand"><span class="brand-mark" aria-hidden="true">S</span><span><strong>SGA · CTP Osa</strong><small>Plataforma institucional</small></span></a>
     <div class="sidebar-label">NAVEGACIÓN</div>
-    <nav class="nav-list" aria-label="Administración de usuarios"><a href="panel.html" class="nav-link active" aria-current="page"><span class="nav-icon" aria-hidden="true">▦</span>Panel principal</a>
-<a href="crear-usuario.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">＋</span>Registrar usuario</a>
-<a href="update_user.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">✎</span>Actualizar datos</a>
-<a href="modificar-rol.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">♙</span>Modificar roles</a>
-<a href="estado-usuario.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">◉</span>Estados y eliminación</a>
-<a href="consultar-activo.html" class="nav-link"><span class="nav-icon" aria-hidden="true">⌕</span>Consultar activos</a>
-<a href="registrar-activo.html" data-admin-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">▣</span>Registrar activo</a>
-<a href="catalogos.html" data-catalog-link hidden class="nav-link " ><span class="nav-icon" aria-hidden="true">☰</span>Catálogos</a></nav>
+    <button type="button" class="sidebar-menu-toggle" id="sidebar-menu-toggle" aria-controls="navegacion-principal" aria-expanded="false"><span aria-hidden="true">☰</span> Menú de navegación <span class="sidebar-menu-arrow" aria-hidden="true">⌄</span></button>
+    <nav class="nav-list" id="navegacion-principal" aria-label="Navegación principal"></nav>
     <div class="sidebar-bottom">
       <div class="sidebar-tip"><span class="tip-icon" aria-hidden="true">✦</span><strong>Gestión responsable</strong><p>Compruebe la información y los permisos antes de guardar cualquier modificación.</p></div>
       <div class="sidebar-footer">SISTEMA DE GESTIÓN DE ACTIVOS<br>ENTORNO INSTITUCIONAL</div>
@@ -47,6 +42,7 @@
     <div class="action-grid">
       <a href="registrar-activo.html" id="enlace-activo" data-admin-link hidden class="action-card card"><span class="action-icon" aria-hidden="true">▣</span><div><h3>Registrar activo</h3><p>Añada un nuevo activo al sistema mediante un formulario.</p><span class="card-link">Registrar activo →</span></div></a>
       <a href="consultar-activo.html" id="enlace-consulta-activo" class="action-card card"><span class="action-icon blue" aria-hidden="true">⌕</span><div><h3>Consultar activo</h3><p>Localice un activo y revise su información detallada sin modificarla.</p><span class="card-link">Consultar activo →</span></div></a>
+      <a href="actualizar-activo.html" id="enlace-actualizar-activo" data-admin-link hidden class="action-card card"><span class="action-icon blue" aria-hidden="true">✎</span><div><h3>Actualizar activo</h3><p>Modifique la información general de un activo existente.</p><span class="card-link">Actualizar activo →</span></div></a>
     </div>
   </section>
   <section data-catalog-link hidden aria-label="Catálogos" style="margin-top:25px">
