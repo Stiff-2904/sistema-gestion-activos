@@ -1,10 +1,10 @@
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
-const validator = require('../js/registro-validaciones.js');
-const validatorRol = require('../js/modificar-rol-validaciones.js');
-const validatorActivo = require('../js/registrar-activo-validaciones.js');
-const validatorCatalogo = require('../js/catalogos-validaciones.js');
+const validator = require('../js/user-registration-validations.js');
+const validatorRol = require('../js/role-change-validations.js');
+const validatorActivo = require('../js/asset-registration-validations.js');
+const validatorCatalogo = require('../js/catalog-validations.js');
 
 function makeElement() {
   const handlers = {};
@@ -29,34 +29,34 @@ function jsonReply(status, body) {
   return { ok: status >= 200 && status < 300, status, headers: { get: () => 'application/json' }, async json() { return body; } };
 }
 function runPage(page, { response, session, confirmResult = true } = {}) {
-  const ids = ['formulario-login','usuario','contrasena','mostrar-contrasena','boton-login',
-    'error-usuario','error-contrasena','mensaje-formulario',
-    'formulario-registro','mensaje-registro','boton-registrar','nombre','correo','clave','rol',
-    'error-name','error-email','error-password','error-role','cancelar-registro',
-    'datos-cuenta','rol-cuenta','enlace-registro','enlace-actualizacion','enlace-activo','enlace-actualizar-activo','contador-funciones-activos','panel-cuenta','estado-panel','cerrar-sesion',
-    'formulario-actualizacion','mensaje-actualizacion','boton-actualizar','cancelar-actualizacion','id-usuario',
-    'formulario-rol','mensaje-rol','boton-modificar-rol','cancelar-rol','error-id','enlace-rol',
-    'enlace-estado','formulario-estado','mensaje-estado','boton-estado','cancelar-estado',
-    'consultar-estado','ficha-usuario','seccion-cambio','motivo-estado','error-motivo',
-    'nombre-usuario','correo-usuario','rol-usuario','estado-actual',
-    'enlace-eliminar','formulario-eliminar','consultar-eliminacion','ficha-eliminar',
-    'seccion-eliminar','boton-eliminar','cancelar-eliminacion','mensaje-eliminacion',
-    'nombre-eliminar','correo-eliminar','rol-eliminar','estado-eliminar',
-    'abrir-eliminacion','panel-eliminacion',
-    'formulario-catalogo','nombre-catalogo','detalle-catalogo','etiqueta-detalle','error-nombre-catalogo',
-    'error-detalle-catalogo','boton-guardar-catalogo','cancelar-catalogo','mensaje-catalogo','titulo-catalogo',
-    'cuerpo-tabla','estado-lista','enlace-catalogos','pestana-ubicaciones','pestana-estados',
-    'pestana-categorias','pestana-modos-adquisicion',
-    'formulario-consulta','id-consulta','error-id-consulta','mensaje-consulta','boton-consultar',
-    'cancelar-consulta','seccion-detalle','resumen-activo','datos-detalle','mensaje-listado',
-    'cuerpo-activos','tabla-activos','enlace-registrar','enlace-actualizar',
-    'formulario-buscar-edicion','id-edicion','error-id-edicion','mensaje-carga-edicion',
-    'boton-cargar-edicion','mensaje-listado-edicion','cuerpo-edicion-activos','tabla-edicion-activos','seccion-edicion','id-activo-cargado','formulario-edicion',
-    'mensaje-edicion','boton-guardar-edicion','cancelar-edicion',
-    'formulario-activo','mensaje-activo','boton-registrar-activo','cancelar-activo',
-    ...['numero-activo','descripcion-activo','marca-activo','modelo-activo','serie-activo','precio-activo',
-      'estado-activo','ubicacion-activo','categoria-activo','modo-activo','responsable-activo',
-      'observaciones-activo'].flatMap(id => [id, 'error-' + id])];
+  const ids = ['form-login','username','password','show-password','button-login',
+    'error-user','password-error-login','form-message',
+    'form-registration','message-registration','button-register','name','email','access-key','role',
+    'error-name','error-email','error-password','error-role','error-status-asset','cancel-registration',
+    'account-details','account-role','link-registration','link-update','link-asset','link-update-asset','counter-functions-assets','account-panel','status-dashboard','close-session',
+    'form-update','message-update','button-update','cancel-update','id-user',
+    'form-role','message-role','button-change-role','cancel-role','error-id','link-role',
+    'link-status','form-status','message-status','button-status','cancel-status',
+    'view-status','card-user','section-change','reason-status','error-reason',
+    'name-user','email-user','role-user','status-current',
+    'link-delete','form-delete','view-deletion','card-delete',
+    'section-delete','button-delete','cancel-deletion','message-deletion',
+    'name-delete','email-delete','role-delete','status-delete',
+    'open-deletion','dashboard-deletion',
+    'form-catalog','name-catalog','detail-catalog','label-detail','error-name-catalog',
+    'error-detail-catalog','button-save-catalog','cancel-catalog','message-catalog','title-catalog',
+    'body-table','list-status','link-catalogs','tab-locations','tab-statuses',
+    'tab-categories','tab-acquisition-modes',
+    'form-view','id-view','error-id-view','message-view','button-view',
+    'cancel-view','section-detail','summary-asset','data-detail','message-listing',
+    'body-assets','table-assets','link-register-asset','link-update-asset',
+    'form-search-editing','id-editing','error-id-editing','message-load-editing',
+    'button-load-editing','message-listing-editing','body-editing-assets','table-editing-assets','section-editing','id-asset-loaded','form-editing',
+    'message-editing','button-save-editing','cancel-editing',
+    'form-asset','message-asset','button-register-asset','cancel-asset',
+    ...['number-asset','description-asset','brand-asset','model-asset','serial-asset','price-asset',
+      'status-asset','location-asset','category-asset','mode-asset','responsible-asset',
+      'notes-asset'].flatMap(id => [id, 'error-' + id])];
   const dom = Object.fromEntries(ids.map(id => [id, makeElement()]));
   const history = [];
   const calls = [];

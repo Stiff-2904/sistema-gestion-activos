@@ -1,0 +1,26 @@
+/* Amplía el estilo institucional de login.css sin modificar el login existente. */
+.card-registration { max-width: 510px; padding: 34px 42px; }
+.card-registration h2 { margin: 18px 0 8px; }
+.card-registration .text-secondary { margin-bottom: 22px; }
+.card-registration .field-group { margin-bottom: 15px; }
+.field-group select {
+  width: 100%; height: 50px; padding: 0 14px; border: 1px solid #d6e0e8;
+  border-radius: 9px; background: #fafcfe; color: #162b3e;
+  font: inherit; font-size: 14px;
+}
+.field-group select:focus { outline: none; border-color: #168ab8; box-shadow: 0 0 0 3px rgba(22,138,184,.12); }
+.field-group select.invalid-field { border-color: #cf526a; background: #fffafa; }
+.actions-registration { display: flex; gap: 12px; align-items: stretch; margin-top: 8px; }
+.actions-registration button { flex: 1; margin: 0; min-height: 50px; }
+.button-cancel { border: 1px solid #bfcbd5; border-radius: 9px; background: #f8fafc; color: #263d51; font-weight: 700; cursor: pointer; }
+.button-cancel:hover { background: #e8eef4; }
+.form-message.error { color: #9f2440; background: #fff1f4; padding: 12px; border-radius: 8px; }
+@media (max-width: 510px) {
+  .card-registration { padding: 26px 22px; }
+  .actions-registration { flex-direction: column-reverse; }
+}
+.form-message.success { color: #18633e; background: #e9f7ef; padding: 12px; border-radius: 8px; }
+.link-accion { display: block; margin: 14px 0 24px; padding: 15px; border-radius: 9px; text-align: center; text-decoration: none; font-weight: 700; background: #176e99; color: white; }
+.link-accion:hover { background: #125779; }
+.link-accion[hidden] { display: none; }
+.button-exit { width: 100%; padding: 14px 10px; margin-top: 12px; }

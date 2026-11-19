@@ -1,0 +1,29 @@
+/* HU-GA-02: interfaz responsiva de consulta (solo lectura). */
+.asset-view-card,.asset-view-details,.asset-view-listing{margin-bottom:22px}
+.view-controls{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.view-controls .field-group{flex:1;min-width:200px;margin:0}
+.view-controls button{min-height:47px;padding:0 22px}
+.view-controls input{width:100%}
+.asset-view-details .card-head p{overflow-wrap:anywhere}
+.detail-grid{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.detail-item{border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:14px;min-width:0}
+.detail-item dt{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:7px}
+.detail-item dd{font-size:14px;font-weight:600;margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.detail-item.detail-wide{grid-column:1/-1}
+.asset-view-table{overflow-x:auto}
+.asset-view-table table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+.asset-view-table th,.asset-view-table td{padding:13px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.asset-view-table th{font-size:11px;color:var(--muted)}
+.asset-view-table td:nth-child(3){max-width:280px;overflow-wrap:anywhere}
+.asset-view-button{border:1px solid var(--teal);color:var(--teal-dark);background:var(--teal-light);padding:8px 12px;border-radius:9px;font-weight:700}
+.asset-view-button:hover{background:#d3f0e7}
+.asset-view-listing-message{color:var(--muted);font-size:13px}
+@media(max-width:850px){.detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:570px){.detail-grid{grid-template-columns:1fr}.view-controls button{flex:1}}
+
+.asset-edit-button{display:inline-block;margin-left:8px;text-decoration:none;background:#e9f2ff;color:#204b83;border-color:#afc8ef}
+.asset-edit-button:hover{background:#dbeaff}
+
+/* La fila seleccionada se distingue sin alterar el estilo de la consulta. */
+.view-row-selected td{background:#effaf6}
+.view-row-selected td:first-child{box-shadow:inset 3px 0 0 var(--teal)}

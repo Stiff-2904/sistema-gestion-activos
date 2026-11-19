@@ -2,26 +2,26 @@
 (function () {
   'use strict';
   const api = window.AssetManagementAPI;
-  const form = document.getElementById('formulario-login');
-  const user = document.getElementById('usuario');
-  const passwordInput = document.getElementById('contrasena');
-  const submitButton = document.getElementById('boton-login');
-  const notice = document.getElementById('mensaje-formulario');
-  const show = document.getElementById('mostrar-contrasena');
-  const usernameError = document.getElementById('error-usuario');
-  const passwordError = document.getElementById('error-contrasena');
+  const form = document.getElementById('form-login');
+  const user = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const submitButton = document.getElementById('button-login');
+  const notice = document.getElementById('form-message');
+  const show = document.getElementById('show-password');
+  const usernameError = document.getElementById('error-user');
+  const passwordError = document.getElementById('password-error-login');
   const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   function message(text = '', cssClass = '') {
     notice.textContent = text;
-    notice.className = 'mensaje-formulario' + (cssClass ? ' ' + cssClass : '');
+    notice.className = 'form-message' + (cssClass ? ' ' + cssClass : '');
   }
   function clear() {
     message();
     usernameError.textContent = '';
     passwordError.textContent = '';
-    user.classList.remove('campo-invalido');
-    passwordInput.classList.remove('campo-invalido');
+    user.classList.remove('invalid-field');
+    passwordInput.classList.remove('invalid-field');
   }
 
   show.addEventListener('click', function () {
@@ -40,25 +40,25 @@
     let valid = true;
     if (!EMAIL_PATTERN.test(email)) {
       usernameError.textContent = 'Ingrese un correo electrónico válido.';
-      user.classList.add('campo-invalido');
+      user.classList.add('invalid-field');
       valid = false;
     }
     if (!password) {
       passwordError.textContent = 'Ingrese su contraseña.';
-      passwordInput.classList.add('campo-invalido');
+      passwordInput.classList.add('invalid-field');
       valid = false;
     }
     if (!valid) return;
 
     submitButton.disabled = true;
-    message('Iniciando sesion...', 'informacion');
+    message('Iniciando sesion...', 'information');
     try {
       const data = await api.request('/api/v1/auth/login', {
         method: 'POST', body: { email, password },
       });
       api.saveSession(data);
       passwordInput.value = '';
-      window.location.assign('panel.html');
+      window.location.assign('dashboard.html');
     } catch (error) {
       message(error.status === 401 ? 'Correo o contraseña incorrectos.' : error.message, 'error');
       submitButton.disabled = false;

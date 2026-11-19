@@ -9,13 +9,13 @@ body {
   background: #f2f6fa;
 }
 
-.pagina-login {
+.page-login {
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: 100vh;
 }
 
-.panel-institucional {
+.institutional-panel {
   position: relative;
   overflow: hidden;
   display: flex;
@@ -35,7 +35,7 @@ body {
     linear-gradient(135deg, #07192d, #103b59);
 }
 
-.panel-institucional::before {
+.institutional-panel::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -48,14 +48,14 @@ body {
   pointer-events: none;
 }
 
-.marca {
+.login-brand {
   display: flex;
   align-items: center;
   gap: 14px;
   position: relative;
 }
 
-.marca-icono {
+.login-brand-icon {
   width: 48px;
   height: 48px;
   display: grid;
@@ -69,58 +69,58 @@ body {
   font-size: 30px;
 }
 
-.marca strong {
+.login-brand strong {
   display: block;
   font-size: 20px;
   letter-spacing: 2px;
 }
 
-.marca span {
+.login-brand span {
   display: block;
   margin-top: 4px;
   color: #b5cddd;
   font-size: 12px;
 }
 
-.presentacion {
+.presentation {
   position: relative;
   max-width: 530px;
 }
 
-.etiqueta {
+.login-label {
   color: #60d4ef;
   font-size: 12px;
   font-weight: bold;
   letter-spacing: 3px;
 }
 
-.presentacion h1 {
+.presentation h1 {
   margin: 20px 0;
   font-size: clamp(36px, 4vw, 58px);
   line-height: 1.12;
   letter-spacing: -1.5px;
 }
 
-.presentacion h1 span {
+.presentation h1 span {
   display: block;
   color: #70d8f0;
 }
 
-.descripcion {
+.login-description {
   max-width: 440px;
   color: #bdd0dd;
   line-height: 1.8;
   font-size: 16px;
 }
 
-.pie-institucional {
+.footer-institutional {
   position: relative;
   color: #9cb8ca;
   font-size: 11px;
   letter-spacing: 2px;
 }
 
-.panel-acceso {
+.access-panel {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -128,7 +128,7 @@ body {
   background: #f2f6fa;
 }
 
-.tarjeta-login {
+.card-login {
   width: 100%;
   max-width: 460px;
   padding: 42px;
@@ -140,7 +140,7 @@ body {
   box-shadow: 0 20px 55px rgba(20, 45, 70, 0.09);
 }
 
-.insignia {
+.badge {
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -156,31 +156,31 @@ body {
   letter-spacing: 1px;
 }
 
-.punto {
+.dot {
   width: 7px;
   height: 7px;
   background: #189fc5;
   border-radius: 50%;
 }
 
-.tarjeta-login h2 {
+.card-login h2 {
   margin: 26px 0 10px;
   font-size: 30px;
   color: #132b41;
 }
 
-.texto-secundario {
+.text-secondary {
   margin-bottom: 32px;
   color: #697c8e;
   line-height: 1.6;
   font-size: 14px;
 }
 
-.grupo-campo {
+.field-group {
   margin-bottom: 22px;
 }
 
-.grupo-campo label {
+.field-group label {
   display: block;
   margin-bottom: 9px;
 
@@ -189,7 +189,7 @@ body {
   color: #263d51;
 }
 
-.grupo-campo input {
+.field-group input {
   width: 100%;
   height: 50px;
   padding: 0 14px;
@@ -208,25 +208,25 @@ body {
     box-shadow 0.2s;
 }
 
-.grupo-campo input::placeholder {
+.field-group input::placeholder {
   color: #96a5b2;
 }
 
-.grupo-campo input:focus {
+.field-group input:focus {
   outline: none;
   border-color: #168ab8;
   box-shadow: 0 0 0 3px rgba(22, 138, 184, 0.12);
 }
 
-.contenedor-contrasena {
+.container-password {
   position: relative;
 }
 
-.contenedor-contrasena input {
+.container-password input {
   padding-right: 90px;
 }
 
-.boton-mostrar {
+.button-show {
   position: absolute;
   right: 9px;
   top: 50%;
@@ -244,11 +244,11 @@ body {
   cursor: pointer;
 }
 
-.boton-mostrar:hover {
+.button-show:hover {
   background: #e9f5fa;
 }
 
-.boton-login {
+.button-login {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -273,12 +273,12 @@ body {
     box-shadow 0.2s;
 }
 
-.boton-login:hover {
+.button-login:hover {
   transform: translateY(-2px);
   box-shadow: 0 9px 22px rgba(17, 104, 151, 0.24);
 }
 
-.boton-login:active {
+.button-login:active {
   transform: translateY(0);
 }
 
@@ -287,40 +287,40 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
-.error-campo {
+.error-field {
   display: block;
   margin-top: 6px;
   color: #b9344f;
   font-size: 12px;
 }
 
-.error-campo:empty {
+.error-field:empty {
   display: none;
 }
 
-.grupo-campo input.campo-invalido {
+.field-group input.invalid-field {
   border-color: #cf526a;
   background: #fffafa;
 }
 
-.mensaje-formulario {
+.form-message {
   margin-top: 16px;
   font-size: 12px;
   line-height: 1.6;
 }
 
-.mensaje-formulario:empty {
+.form-message:empty {
   display: none;
 }
 
-.mensaje-formulario.informacion {
+.form-message.information {
   color: #176b91;
   background: #eaf6fc;
   padding: 12px;
   border-radius: 8px;
 }
 
-.pie-tarjeta {
+.footer-card {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -335,40 +335,40 @@ button:focus-visible {
 }
 
 @media (max-width: 850px) {
-  .pagina-login {
+  .page-login {
     grid-template-columns: 1fr;
   }
 
-  .panel-institucional {
+  .institutional-panel {
     min-height: 270px;
     padding: 28px;
     gap: 30px;
   }
 
-  .presentacion h1 {
+  .presentation h1 {
     font-size: 32px;
   }
 
-  .descripcion {
+  .login-description {
     font-size: 14px;
   }
 
-  .pie-institucional {
+  .footer-institutional {
     display: none;
   }
 
-  .panel-acceso {
+  .access-panel {
     padding: 28px 18px;
   }
 
-  .tarjeta-login {
+  .card-login {
     max-width: 500px;
     padding: 30px 24px;
   }
 
-  .pie-tarjeta {
+  .footer-card {
     flex-direction: column;
   }
 }
-.mensaje-formulario.error { color: #9f2440; background: #fff1f4; padding: 12px; border-radius: 8px; }
-.boton-login:disabled { opacity: 0.7; cursor: wait; }
+.form-message.error { color: #9f2440; background: #fff1f4; padding: 12px; border-radius: 8px; }
+.button-login:disabled { opacity: 0.7; cursor: wait; }

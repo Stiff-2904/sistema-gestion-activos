@@ -1,0 +1,13 @@
+/* Administracion de catalogos: pestanas y tabla con los mismos colores de app.css */
+.tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.tab { min-height:42px; padding:10px 16px; border-radius:10px; border:1px solid #d9e2ea; background:#fff; color:#52657a; font-size:12px; font-weight:750; cursor:pointer; transition:background .2s,color .2s; }
+.tab:hover { background:#f4f8fa; }
+.tab.tab-active { background:var(--teal); color:#fff; border-color:var(--teal); }
+.table-catalog { width:100%; border-collapse:collapse; font-size:13px; }
+.table-catalog th { text-align:left; padding:10px 12px; font-size:11px; letter-spacing:.04em; color:#6f8093; border-bottom:1px solid var(--line); }
+.table-catalog td { padding:11px 12px; border-bottom:1px solid var(--line); color:var(--ink-strong); vertical-align:middle; }
+.table-catalog td:last-child { white-space:nowrap; text-align:right; }
+.table-button { min-height:34px; padding:6px 12px; margin-left:6px; font-size:11px; }
+.table-button:disabled { opacity:.45; cursor:not-allowed; }
+.list-status { padding:14px 4px; font-size:12px; color:#6f8093; }
+.list-status[hidden] { display:none; }

@@ -3,29 +3,29 @@
   'use strict';
   const api = window.AssetManagementAPI;
   const session = api && api.session();
-  const nav = document.getElementById('navegacion-principal');
+  const nav = document.getElementById('main-navigation');
   if (!nav || !session) return; // Cada módulo controla su propia redirección de acceso.
 
   const isSuperuser = session.role === 'SUPERUSER';
   const canManageCatalogs = isSuperuser || session.role === 'INTERMEDIATE_USER';
-  const route = (window.location.pathname || '').split('/').pop() || 'panel.html';
+  const route = (window.location.pathname || '').split('/').pop() || 'dashboard.html';
   const groups = [
     {
-      id: 'usuarios', name: 'Usuarios', createIcon: '♙', allowed: isSuperuser,
+      id: 'users', name: 'Usuarios', createIcon: '♙', allowed: isSuperuser,
       links: [
-        ['crear-usuario.html', '＋', 'Registrar usuario'],
-        ['update_user.html', '✎', 'Actualizar datos'],
-        ['modificar-rol.html', '♙', 'Modificar roles'],
-        ['estado-usuario.html', '◉', 'Estados y eliminación'],
+        ['create-user.html', '＋', 'Registrar usuario'],
+        ['update-user.html', '✎', 'Actualizar datos'],
+        ['change-role.html', '♙', 'Modificar roles'],
+        ['user-status.html', '◉', 'Estados y eliminación'],
       ],
     },
     {
-      id: 'activos', name: 'Activos', createIcon: '▣', allowed: true,
+      id: 'assets', name: 'Activos', createIcon: '▣', allowed: true,
       links: [
-        ['registrar-activo.html', '▣', 'Registrar activo', isSuperuser],
-        ['consultar-activo.html', '⌕', 'Consultar activo', true],
-        ['actualizar-activo.html', '✎', 'Actualizar activo', isSuperuser],
-        ['catalogos.html', '☰', 'Catálogos', canManageCatalogs],
+        ['register-asset.html', '▣', 'Registrar activo', isSuperuser],
+        ['view-asset.html', '⌕', 'Consultar activo', true],
+        ['update-asset.html', '✎', 'Actualizar activo', isSuperuser],
+        ['catalogs.html', '☰', 'Catálogos', canManageCatalogs],
       ],
     },
   ];
@@ -51,7 +51,7 @@
     return a;
   }
 
-  nav.appendChild(createLink('panel.html', '▦', 'Panel principal'));
+  nav.appendChild(createLink('dashboard.html', '▦', 'Panel principal'));
   for (const group of groups) {
     if (!group.allowed) continue;
     const container = document.createElement('div');
@@ -77,10 +77,10 @@
     const allowedLinks = group.links.filter(item => item.length < 4 || item[3]);
     for (const item of allowedLinks) submenu.appendChild(createLink(item[0], item[1], item[2]));
     const expanded = allowedLinks.some(item => item[0] === route);
-    function toggleExpanded(abierto) {
-      toggle.setAttribute('aria-expanded', String(abierto));
-      toggle.classList.toggle('is-open', abierto);
-      submenu.hidden = !abierto;
+    function toggleExpanded(isOpen) {
+      toggle.setAttribute('aria-expanded', String(isOpen));
+      toggle.classList.toggle('is-open', isOpen);
+      submenu.hidden = !isOpen;
     }
     toggleExpanded(expanded);
     toggle.addEventListener('click', () => toggleExpanded(toggle.getAttribute('aria-expanded') !== 'true'));
@@ -93,9 +93,9 @@
   const sidebar = document.querySelector('.sidebar');
   if (mobileToggle && sidebar) {
     mobileToggle.addEventListener('click', () => {
-      const abierto = mobileToggle.getAttribute('aria-expanded') !== 'true';
-      mobileToggle.setAttribute('aria-expanded', String(abierto));
-      sidebar.classList.toggle('nav-mobile-open', abierto);
+      const isOpen = mobileToggle.getAttribute('aria-expanded') !== 'true';
+      mobileToggle.setAttribute('aria-expanded', String(isOpen));
+      sidebar.classList.toggle('nav-mobile-open', isOpen);
     });
   }
 })();

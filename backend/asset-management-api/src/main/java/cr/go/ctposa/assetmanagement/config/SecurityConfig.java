@@ -33,8 +33,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/panel.html", "/crear-usuario.html", "/update_user.html",
-                        "/modificar-rol.html", "/estado-usuario.html", "/eliminar-usuario.html", "/registrar-activo.html", "/consultar-activo.html", "/actualizar-activo.html", "/catalogos.html", "/css/**", "/js/**", "/favicon.ico", "/error").permitAll()
+                .requestMatchers("/", "/index.html", "/dashboard.html", "/create-user.html", "/update-user.html",
+                        "/change-role.html", "/user-status.html", "/delete-user.html", "/register-asset.html", "/view-asset.html", "/update-asset.html", "/catalogs.html", "/css/**", "/js/**", "/favicon.ico", "/error").permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
                 .anyRequest().authenticated()
             )
