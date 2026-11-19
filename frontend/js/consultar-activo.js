@@ -1,21 +1,21 @@
 /* HU-GA-02: CA01 consulta correcta, CA02 no existe, CA03 cancelar sin modificaciones. */
 (function () {
   'use strict';
-  const api = window.SGAAPI;
-  const sesion = api.sesion();
-  if (!sesion) { window.location.replace('index.html'); return; }
-  const formulario = document.getElementById('formulario-consulta');
-  const campo = document.getElementById('id-consulta');
-  const errorId = document.getElementById('error-id-consulta');
-  const aviso = document.getElementById('mensaje-consulta');
-  const boton = document.getElementById('boton-consultar');
-  const cancelar = document.getElementById('cancelar-consulta');
-  const seccion = document.getElementById('seccion-detalle');
-  const resumen = document.getElementById('resumen-activo');
-  const detalle = document.getElementById('datos-detalle');
+  const api = window.AssetManagementAPI;
+  const session = api.session();
+  if (!session) { window.location.replace('index.html'); return; }
+  const form = document.getElementById('formulario-consulta');
+  const field = document.getElementById('id-consulta');
+  const idError = document.getElementById('error-id-consulta');
+  const notice = document.getElementById('mensaje-consulta');
+  const submitButton = document.getElementById('boton-consultar');
+  const cancelButton = document.getElementById('cancelar-consulta');
+  const section = document.getElementById('seccion-detalle');
+  const summary = document.getElementById('resumen-activo');
+  const detail = document.getElementById('datos-detalle');
   let version = 0; // invalida el resultado tardio de una consulta cancelada
 
-  const campos = [
+  const fields = [
     ['id', 'ID del activo'], ['assetNumber', 'Número de identificación'],
     ['description', 'Descripción'], ['brand', 'Marca'], ['model', 'Modelo'],
     ['serial', 'Serie'], ['price', 'Precio'], ['status', 'Estado'],
@@ -24,133 +24,133 @@
     ['currentResponsible', 'Responsable actual'], ['decommissioned', 'Dado de baja'],
     ['notes', 'Observaciones'],
   ];
-  const texto = (clave, valor) => {
-    if (clave === 'decommissioned') return valor === true ? 'Sí' : 'No';
-    return valor === null || valor === undefined || valor === '' ? 'No registrado' : String(valor);
+  const text = (key, value) => {
+    if (key === 'decommissioned') return value === true ? 'Sí' : 'No';
+    return value === null || value === undefined || value === '' ? 'No registrado' : String(value);
   };
-  function mensaje(valor = '', clase = '') {
-    aviso.textContent = valor;
-    aviso.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
+  function message(value = '', cssClass = '') {
+    notice.textContent = value;
+    notice.className = 'mensaje-formulario' + (cssClass ? ' ' + cssClass : '');
   }
-  function limpiarVista() {
-    seccion.hidden = true;
-    resumen.textContent = '';
-    detalle.textContent = '';
+  function clearView() {
+    section.hidden = true;
+    summary.textContent = '';
+    detail.textContent = '';
   }
-  function mostrarActivo(activo) {
-    limpiarVista();
-    resumen.textContent = activo.assetNumber + ' · ' + activo.description;
-    campos.forEach(([clave, titulo]) => {
-      const contenedor = document.createElement('div');
-      contenedor.className = 'detalle-item' + (['description','notes'].includes(clave) ? ' detalle-ancho' : '');
+  function displayAsset(asset) {
+    clearView();
+    summary.textContent = asset.assetNumber + ' · ' + asset.description;
+    fields.forEach(([key, title]) => {
+      const container = document.createElement('div');
+      container.className = 'detalle-item' + (['description','notes'].includes(key) ? ' detalle-ancho' : '');
       const dt = document.createElement('dt');
-      dt.textContent = titulo;
+      dt.textContent = title;
       const dd = document.createElement('dd');
-      dd.textContent = texto(clave, activo[clave]);
-      contenedor.appendChild(dt);
-      contenedor.appendChild(dd);
-      detalle.appendChild(contenedor);
+      dd.textContent = text(key, asset[key]);
+      container.appendChild(dt);
+      container.appendChild(dd);
+      detail.appendChild(container);
     });
-    seccion.hidden = false;
+    section.hidden = false;
   }
-  const validarId = valor => /^[1-9]\d*$/.test(String(valor).trim()) && Number.isSafeInteger(Number(valor));
-  async function consultar(id) {
-    const actual = ++version;
-    limpiarVista();
-    errorId.textContent = '';
-    campo.removeAttribute('aria-invalid');
-    if (!validarId(id)) {
-      errorId.textContent = 'Ingrese un ID numérico entero y positivo.';
-      campo.setAttribute('aria-invalid', 'true');
-      campo.focus();
-      mensaje('Revise el ID antes de consultar.', 'error');
+  const validateId = value => /^[1-9]\d*$/.test(String(value).trim()) && Number.isSafeInteger(Number(value));
+  async function fetchDetails(id) {
+    const current = ++version;
+    clearView();
+    idError.textContent = '';
+    field.removeAttribute('aria-invalid');
+    if (!validateId(id)) {
+      idError.textContent = 'Ingrese un ID numérico entero y positivo.';
+      field.setAttribute('aria-invalid', 'true');
+      field.focus();
+      message('Revise el ID antes de consultar.', 'error');
       return;
     }
-    boton.disabled = true;
-    mensaje('Consultando activo...', 'informacion');
+    submitButton.disabled = true;
+    message('Consultando activo...', 'informacion');
     try {
-      const respuesta = await api.solicitud('/api/v1/assets/' + Number(id), { autenticado: true });
-      if (actual !== version) return;
-      if (!respuesta || respuesta.id !== Number(id)) throw new Error('El servidor devolvió un activo diferente al solicitado.');
-      mostrarActivo(respuesta);
-      mensaje('Información del activo consultada correctamente.', 'exito');
+      const response = await api.request('/api/v1/assets/' + Number(id), { authenticated: true });
+      if (current !== version) return;
+      if (!response || response.id !== Number(id)) throw new Error('El servidor devolvió un activo diferente al solicitado.');
+      displayAsset(response);
+      message('Información del activo consultada correctamente.', 'exito');
     } catch (error) {
-      if (actual !== version) return;
+      if (current !== version) return;
       if (error.status === 401) {
-        api.cerrarSesion(); window.location.replace('index.html'); return;
+        api.clearSession(); window.location.replace('index.html'); return;
       }
-      mensaje(error.status === 404 ? 'El activo con ID ' + Number(id) + ' no existe.' : error.message, 'error');
+      message(error.status === 404 ? 'El activo con ID ' + Number(id) + ' no existe.' : error.message, 'error');
     } finally {
-      if (actual === version) boton.disabled = false;
+      if (current === version) submitButton.disabled = false;
     }
   }
-  formulario.addEventListener('submit', function (evento) {
-    evento.preventDefault();
-    consultar(campo.value);
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    fetchDetails(field.value);
   });
-  cancelar.addEventListener('click', function () {
+  cancelButton.addEventListener('click', function () {
     ++version;
-    boton.disabled = false;
-    formulario.reset();
-    limpiarVista();
-    errorId.textContent = '';
-    campo.removeAttribute('aria-invalid');
-    mensaje('Consulta cancelada. No se realizó ningún cambio.', 'informacion');
+    submitButton.disabled = false;
+    form.reset();
+    clearView();
+    idError.textContent = '';
+    field.removeAttribute('aria-invalid');
+    message('Consulta cancelada. No se realizó ningún cambio.', 'informacion');
   });
-  campo.addEventListener('input', function () {
-    errorId.textContent = '';
-    campo.removeAttribute('aria-invalid');
+  field.addEventListener('input', function () {
+    idError.textContent = '';
+    field.removeAttribute('aria-invalid');
   });
-  if (sesion.role === 'SUPERUSER') {
-    const registrar = document.getElementById('enlace-registrar');
-    if (registrar) registrar.hidden = false;
-    const actualizar = document.getElementById('enlace-actualizar');
-    if (actualizar) actualizar.hidden = false;
+  if (session.role === 'SUPERUSER') {
+    const register = document.getElementById('enlace-registrar');
+    if (register) register.hidden = false;
+    const update = document.getElementById('enlace-actualizar');
+    if (update) update.hidden = false;
   }
 
-  async function cargarListado() {
-    const avisoListado = document.getElementById('mensaje-listado');
-    const cuerpo = document.getElementById('cuerpo-activos');
-    const tabla = document.getElementById('tabla-activos');
+  async function loadAssetList() {
+    const listNotice = document.getElementById('mensaje-listado');
+    const tableBody = document.getElementById('cuerpo-activos');
+    const table = document.getElementById('tabla-activos');
     try {
-      const activos = await api.solicitud('/api/v1/assets', { autenticado: true });
-      if (!Array.isArray(activos)) throw new Error('El listado de activos tiene un formato inválido.');
-      cuerpo.textContent = '';
-      for (const activo of activos) {
-        const fila = document.createElement('tr');
-        for (const clave of ['id','assetNumber','description','status']) {
-          const celda = document.createElement('td');
-          celda.textContent = texto(clave, activo[clave]);
-          fila.appendChild(celda);
+      const assets = await api.request('/api/v1/assets', { authenticated: true });
+      if (!Array.isArray(assets)) throw new Error('El listado de activos tiene un formato inválido.');
+      tableBody.textContent = '';
+      for (const asset of assets) {
+        const row = document.createElement('tr');
+        for (const key of ['id','assetNumber','description','status']) {
+          const createCell = document.createElement('td');
+          createCell.textContent = text(key, asset[key]);
+          row.appendChild(createCell);
         }
-        const celda = document.createElement('td');
+        const createCell = document.createElement('td');
         const ver = document.createElement('button');
         ver.type = 'button';
         ver.className = 'consulta-ver';
         ver.textContent = 'Ver detalle';
         ver.addEventListener('click', () => {
-          campo.value = String(activo.id);
-          consultar(activo.id);
+          field.value = String(asset.id);
+          fetchDetails(asset.id);
         });
-        celda.appendChild(ver);
-        if (sesion.role === 'SUPERUSER') {
-          const editar = document.createElement('a');
-          editar.href = 'actualizar-activo.html?id=' + encodeURIComponent(String(activo.id));
-          editar.className = 'consulta-ver consulta-editar';
-          editar.textContent = 'Actualizar';
-          celda.appendChild(editar);
+        createCell.appendChild(ver);
+        if (session.role === 'SUPERUSER') {
+          const editButton = document.createElement('a');
+          editButton.href = 'actualizar-activo.html?id=' + encodeURIComponent(String(asset.id));
+          editButton.className = 'consulta-ver consulta-editar';
+          editButton.textContent = 'Actualizar';
+          createCell.appendChild(editButton);
         }
-        fila.appendChild(celda);
-        cuerpo.appendChild(fila);
+        row.appendChild(createCell);
+        tableBody.appendChild(row);
       }
-      tabla.hidden = activos.length === 0;
-      avisoListado.textContent = activos.length === 0 ? 'No hay activos registrados.' : 'Activos disponibles: ' + activos.length + '.';
+      table.hidden = assets.length === 0;
+      listNotice.textContent = assets.length === 0 ? 'No hay activos registrados.' : 'Activos disponibles: ' + assets.length + '.';
     } catch (error) {
       if (error.status === 401) {
-        api.cerrarSesion(); window.location.replace('index.html'); return;
+        api.clearSession(); window.location.replace('index.html'); return;
       }
-      avisoListado.textContent = 'No se pudo cargar el listado: ' + error.message;
+      listNotice.textContent = 'No se pudo cargar el listado: ' + error.message;
     }
   }
-  cargarListado();
+  loadAssetList();
 })();

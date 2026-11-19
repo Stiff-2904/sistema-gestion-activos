@@ -156,14 +156,14 @@ class CatalogServiceTest {
     @Test
     void delete_UnusedElement_DeletesAndAudits() {
         authenticateActor();
-        Location aula = location(2, "Aula 2", "Edificio A");
-        when(locations.findById(2)).thenReturn(Optional.of(aula));
+        Location classroom = location(2, "Aula 2", "Edificio A");
+        when(locations.findById(2)).thenReturn(Optional.of(classroom));
         when(assets.countByLocation_Id(2)).thenReturn(0L);
 
         CatalogDeleteResponse result = service.delete(CatalogType.LOCATION, 2);
 
         assertNotNull(result.message());
-        verify(locations).delete(aula);
+        verify(locations).delete(classroom);
         ArgumentCaptor<Audit> captor = ArgumentCaptor.forClass(Audit.class);
         verify(audits).save(captor.capture());
         assertEquals("DELETE_CATALOG", captor.getValue().getAction());
@@ -189,8 +189,8 @@ class CatalogServiceTest {
     @Test
     void delete_ForeignKeyViolation_ThrowsConflict() {
         authenticateActor();
-        Location aula = location(2, "Aula 2", "Edificio A");
-        when(locations.findById(2)).thenReturn(Optional.of(aula));
+        Location classroom = location(2, "Aula 2", "Edificio A");
+        when(locations.findById(2)).thenReturn(Optional.of(classroom));
         when(assets.countByLocation_Id(2)).thenReturn(0L);
         doThrow(new DataIntegrityViolationException("fk")).when(locations).flush();
 
@@ -216,24 +216,24 @@ class CatalogServiceTest {
     @Test
     void update_ChangesNameAndDetailAndAudits() {
         authenticateActor();
-        Location aula = location(2, "Aula 2", "Edificio A");
-        when(locations.findById(2)).thenReturn(Optional.of(aula));
+        Location classroom = location(2, "Aula 2", "Edificio A");
+        when(locations.findById(2)).thenReturn(Optional.of(classroom));
         when(locations.existsByNameIgnoreCaseAndIdNot("Aula 2B", 2)).thenReturn(false);
 
         CatalogEntryResponse result = service.update(CatalogType.LOCATION, 2,
             new CatalogEntryRequest("Aula 2B", "Edificio C"));
 
-        assertEquals("Aula 2B", aula.getName());
-        assertEquals("Edificio C", aula.getBuilding());
+        assertEquals("Aula 2B", classroom.getName());
+        assertEquals("Edificio C", classroom.getBuilding());
         assertEquals("Aula 2B", result.name());
-        verify(locations).save(aula);
+        verify(locations).save(classroom);
         verify(audits).save(any(Audit.class));
     }
 
     @Test
     void update_NameUsedByAnotherElement_Throws() {
-        Location aula = location(2, "Aula 2", "Edificio A");
-        when(locations.findById(2)).thenReturn(Optional.of(aula));
+        Location classroom = location(2, "Aula 2", "Edificio A");
+        when(locations.findById(2)).thenReturn(Optional.of(classroom));
         when(locations.existsByNameIgnoreCaseAndIdNot("Aula 1", 2)).thenReturn(true);
 
         assertThrows(IllegalArgumentException.class, () ->

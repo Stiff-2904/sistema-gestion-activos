@@ -1,79 +1,79 @@
 /* HU-GU-05: consultar y modificar el estado de una cuenta con motivo y auditoria. */
 (function () {
   'use strict';
-  const api = window.SGAAPI;
-  const sesion = api.sesion();
-  if (!sesion) { window.location.replace('index.html'); return; }
-  if (sesion.role !== 'SUPERUSER') { window.location.replace('panel.html'); return; }
+  const api = window.AssetManagementAPI;
+  const session = api.session();
+  if (!session) { window.location.replace('index.html'); return; }
+  if (session.role !== 'SUPERUSER') { window.location.replace('panel.html'); return; }
 
   const id = document.getElementById('id-usuario');
-  const consulta = document.getElementById('consultar-estado');
-  const formulario = document.getElementById('formulario-estado');
-  const ficha = document.getElementById('ficha-usuario');
-  const seccion = document.getElementById('seccion-cambio');
-  const motivo = document.getElementById('motivo-estado');
-  const boton = document.getElementById('boton-estado');
-  const cancelar = document.getElementById('cancelar-estado');
-  const aviso = document.getElementById('mensaje-estado');
-  const errorId = document.getElementById('error-id');
-  const errorMotivo = document.getElementById('error-motivo');
-  let usuarioActual = null;
+  const lookupButton = document.getElementById('consultar-estado');
+  const form = document.getElementById('formulario-estado');
+  const profileCard = document.getElementById('ficha-usuario');
+  const section = document.getElementById('seccion-cambio');
+  const reason = document.getElementById('motivo-estado');
+  const submitButton = document.getElementById('boton-estado');
+  const cancelButton = document.getElementById('cancelar-estado');
+  const notice = document.getElementById('mensaje-estado');
+  const idError = document.getElementById('error-id');
+  const reasonError = document.getElementById('error-motivo');
+  let currentUser = null;
 
   // La eliminación se gestiona desde esta misma pantalla, sin cambiar el backend.
   // La comprobación GET y el DELETE siguen teniendo todas las restricciones originales.
-  const eliminarUI = (function () {
-    const abrir = document.getElementById('abrir-eliminacion');
+  const deletionUI = (function () {
+    const openButton = document.getElementById('abrir-eliminacion');
     const panel = document.getElementById('panel-eliminacion');
-    const fichaEliminar = document.getElementById('ficha-eliminar');
-    const seccionEliminar = document.getElementById('seccion-eliminar');
-    const formEliminar = document.getElementById('formulario-eliminar');
-    const botonEliminar = document.getElementById('boton-eliminar');
-    const cancelarEliminar = document.getElementById('cancelar-eliminacion');
-    const avisoEliminar = document.getElementById('mensaje-eliminacion');
-    if (!abrir || !panel || !fichaEliminar || !seccionEliminar || !formEliminar ||
-        !botonEliminar || !cancelarEliminar || !avisoEliminar) return null;
+    const deleteCard = document.getElementById('ficha-eliminar');
+    const deleteSection = document.getElementById('seccion-eliminar');
+    const deleteForm = document.getElementById('formulario-eliminar');
+    const deleteButton = document.getElementById('boton-eliminar');
+    const cancelDeletionButton = document.getElementById('cancelar-eliminacion');
+    const deleteNotice = document.getElementById('mensaje-eliminacion');
+    if (!openButton || !panel || !deleteCard || !deleteSection || !deleteForm ||
+        !deleteButton || !cancelDeletionButton || !deleteNotice) return null;
 
-    let autorizado = null;
-    let numeroConsulta = 0;
-    let ocupada = false;
-    function avisar(texto, clase) {
-      avisoEliminar.textContent = texto || '';
-      avisoEliminar.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
+    let authorizedUser = null;
+    let requestSequence = 0;
+    let busy = false;
+    function notify(text, cssClass) {
+      deleteNotice.textContent = text || '';
+      deleteNotice.className = 'mensaje-formulario' + (cssClass ? ' ' + cssClass : '');
     }
-    function limpiar() {
-      numeroConsulta++;
-      autorizado = null;
+    function clear() {
+      requestSequence++;
+      authorizedUser = null;
       panel.hidden = true;
-      fichaEliminar.hidden = true;
-      seccionEliminar.hidden = true;
-      avisar('', '');
+      deleteCard.hidden = true;
+      deleteSection.hidden = true;
+      notify('', '');
     }
-    function bloqueo(bloqueado) {
-      ocupada = bloqueado;
-      abrir.disabled = bloqueado;
-      botonEliminar.disabled = bloqueado;
-      cancelarEliminar.disabled = bloqueado;
-      consulta.disabled = bloqueado;
-      id.disabled = bloqueado;
-      boton.disabled = bloqueado;
-      motivo.disabled = bloqueado;
-      cancelar.disabled = bloqueado;
+    function setBusyState(blocked) {
+      busy = blocked;
+      openButton.disabled = blocked;
+      deleteButton.disabled = blocked;
+      cancelDeletionButton.disabled = blocked;
+      lookupButton.disabled = blocked;
+      id.disabled = blocked;
+      submitButton.disabled = blocked;
+      reason.disabled = blocked;
+      cancelButton.disabled = blocked;
     }
-    abrir.addEventListener('click', async function () {
-      if (!usuarioActual || ocupada) return;
-      limpiar();
+    openButton.addEventListener('click', async function () {
+      if (!currentUser || busy) return;
+      clear();
       panel.hidden = false;
-      if (usuarioActual.active) {
-        avisar('Primero debe inactivar la cuenta. Una cuenta activa no puede eliminarse.', 'error');
+      if (currentUser.active) {
+        notify('Primero debe inactivar la cuenta. Una cuenta activa no puede eliminarse.', 'error');
         return;
       }
-      const userId = usuarioActual.id;
-      const turno = ++numeroConsulta;
-      abrir.disabled = true;
-      avisar('Comprobando si la cuenta puede eliminarse...', 'informacion');
+      const userId = currentUser.id;
+      const turno = ++requestSequence;
+      openButton.disabled = true;
+      notify('Comprobando si la cuenta puede eliminarse...', 'informacion');
       try {
-        const preview = await api.solicitud('/api/v1/users/' + userId + '/deletion', { autenticado: true });
-        if (turno !== numeroConsulta || !usuarioActual || usuarioActual.id !== userId) return;
+        const preview = await api.request('/api/v1/users/' + userId + '/deletion', { authenticated: true });
+        if (turno !== requestSequence || !currentUser || currentUser.id !== userId) return;
         if (!preview || preview.id !== userId || typeof preview.canDelete !== 'boolean' || typeof preview.active !== 'boolean') {
           throw new Error('El servidor no devolvió una evaluación válida de eliminación.');
         }
@@ -81,114 +81,114 @@
         document.getElementById('correo-eliminar').textContent = preview.email;
         document.getElementById('rol-eliminar').textContent = preview.role;
         document.getElementById('estado-eliminar').textContent = preview.active ? 'Activo' : 'Inactivo';
-        fichaEliminar.hidden = false;
-        if (preview.canDelete && !preview.active && preview.id !== sesion.id) {
-          autorizado = preview;
-          seccionEliminar.hidden = false;
-          avisar('La cuenta cumple las condiciones. Confirme únicamente si desea eliminarla.', 'informacion');
+        deleteCard.hidden = false;
+        if (preview.canDelete && !preview.active && preview.id !== session.id) {
+          authorizedUser = preview;
+          deleteSection.hidden = false;
+          notify('La cuenta cumple las condiciones. Confirme únicamente si desea eliminarla.', 'informacion');
         } else {
-          avisar(preview.message || 'Esta cuenta no cumple las condiciones de eliminación.', 'error');
+          notify(preview.message || 'Esta cuenta no cumple las condiciones de eliminación.', 'error');
         }
       } catch (error) {
-        if (turno === numeroConsulta) {
-          if (error.status === 401 || error.status === 403) manejarError(error);
-          else avisar(error.message || 'No se pudo comprobar la eliminación.', 'error');
+        if (turno === requestSequence) {
+          if (error.status === 401 || error.status === 403) handleError(error);
+          else notify(error.message || 'No se pudo comprobar la eliminación.', 'error');
         }
       } finally {
-        if (turno === numeroConsulta) abrir.disabled = false;
+        if (turno === requestSequence) openButton.disabled = false;
       }
     });
-    formEliminar.addEventListener('submit', async function (evento) {
-      evento.preventDefault();
-      if (!autorizado || ocupada) return;
-      const usuario = autorizado;
-      if (!window.confirm('¿Eliminar DEFINITIVAMENTE al usuario ' + usuario.email + ' (ID ' + usuario.id + ')? Esta acción NO se puede deshacer.')) {
-        avisar('Eliminación cancelada. No se modificó el registro.', 'informacion');
+    deleteForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      if (!authorizedUser || busy) return;
+      const user = authorizedUser;
+      if (!window.confirm('¿Eliminar DEFINITIVAMENTE al usuario ' + user.email + ' (ID ' + user.id + ')? Esta acción NO se puede deshacer.')) {
+        notify('Eliminación cancelada. No se modificó el registro.', 'informacion');
         return;
       }
-      bloqueo(true);
-      avisar('Eliminando la cuenta...', 'informacion');
+      setBusyState(true);
+      notify('Eliminando la cuenta...', 'informacion');
       try {
-        const respuesta = await api.solicitud('/api/v1/users/' + usuario.id, { method: 'DELETE', autenticado: true });
-        if (!respuesta || respuesta.id !== usuario.id) throw new Error('El servidor no confirmó la eliminación.');
+        const response = await api.request('/api/v1/users/' + user.id, { method: 'DELETE', authenticated: true });
+        if (!response || response.id !== user.id) throw new Error('El servidor no confirmó la eliminación.');
         id.value = '';
-        invalidarSeleccion();
-        mensaje('Usuario eliminado definitivamente. La cuenta ya no está registrada.', 'exito');
+        invalidateSelection();
+        message('Usuario eliminado definitivamente. La cuenta ya no está registrada.', 'exito');
       } catch (error) {
         if (error.status === 409) {
-          autorizado = null;
-          seccionEliminar.hidden = true;
+          authorizedUser = null;
+          deleteSection.hidden = true;
         }
-        if (error.status === 401 || error.status === 403) manejarError(error);
-        else avisar(error.message || 'No se pudo completar la eliminación.', 'error');
+        if (error.status === 401 || error.status === 403) handleError(error);
+        else notify(error.message || 'No se pudo completar la eliminación.', 'error');
       } finally {
-        bloqueo(false);
+        setBusyState(false);
       }
     });
-    cancelarEliminar.addEventListener('click', function () {
-      if (!ocupada) limpiar();
+    cancelDeletionButton.addEventListener('click', function () {
+      if (!busy) clear();
     });
-    return { limpiar };
+    return { clear };
   })();
 
-  function mensaje(texto, clase) {
-    aviso.textContent = texto || '';
-    aviso.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
+  function message(text, cssClass) {
+    notice.textContent = text || '';
+    notice.className = 'mensaje-formulario' + (cssClass ? ' ' + cssClass : '');
   }
-  function invalidarSeleccion() {
-    usuarioActual = null;
-    if (eliminarUI) eliminarUI.limpiar();
-    ficha.hidden = true;
-    seccion.hidden = true;
-    motivo.value = '';
-    errorMotivo.textContent = '';
+  function invalidateSelection() {
+    currentUser = null;
+    if (deletionUI) deletionUI.clear();
+    profileCard.hidden = true;
+    section.hidden = true;
+    reason.value = '';
+    reasonError.textContent = '';
   }
-  function validarId() {
-    const valor = id.value.trim();
-    if (!/^[1-9]\d*$/.test(valor) || !Number.isSafeInteger(Number(valor))) {
-      errorId.textContent = 'Ingrese un ID de usuario valido (entero positivo).';
+  function validateId() {
+    const value = id.value.trim();
+    if (!/^[1-9]\d*$/.test(value) || !Number.isSafeInteger(Number(value))) {
+      idError.textContent = 'Ingrese un ID de usuario valido (entero positivo).';
       id.setAttribute('aria-invalid', 'true');
       id.focus();
       return null;
     }
-    errorId.textContent = '';
+    idError.textContent = '';
     id.removeAttribute('aria-invalid');
-    return Number(valor);
+    return Number(value);
   }
-  function mostrarUsuario(usuario) {
-    if (eliminarUI) eliminarUI.limpiar();
-    usuarioActual = usuario;
-    document.getElementById('nombre-usuario').textContent = usuario.name;
-    document.getElementById('correo-usuario').textContent = usuario.email;
-    document.getElementById('rol-usuario').textContent = usuario.role;
-    const actual = document.getElementById('estado-actual');
-    actual.textContent = usuario.active ? 'Activo' : 'Inactivo';
-    actual.className = usuario.active ? 'estado-activo' : 'estado-inactivo';
-    boton.textContent = usuario.active ? 'Inactivar usuario' : 'Activar usuario';
-    motivo.value = '';
-    ficha.hidden = false;
-    seccion.hidden = false;
+  function displayUser(user) {
+    if (deletionUI) deletionUI.clear();
+    currentUser = user;
+    document.getElementById('nombre-usuario').textContent = user.name;
+    document.getElementById('correo-usuario').textContent = user.email;
+    document.getElementById('rol-usuario').textContent = user.role;
+    const current = document.getElementById('estado-actual');
+    current.textContent = user.active ? 'Activo' : 'Inactivo';
+    current.className = user.active ? 'estado-activo' : 'estado-inactivo';
+    submitButton.textContent = user.active ? 'Inactivar usuario' : 'Activar usuario';
+    reason.value = '';
+    profileCard.hidden = false;
+    section.hidden = false;
   }
-  async function consultar() {
-    invalidarSeleccion();
-    mensaje('', '');
-    const userId = validarId();
+  async function fetchDetails() {
+    invalidateSelection();
+    message('', '');
+    const userId = validateId();
     if (userId === null) return;
-    consulta.disabled = true;
-    mensaje('Consultando estado actual...', 'informacion');
+    lookupButton.disabled = true;
+    message('Consultando estado actual...', 'informacion');
     try {
-      const usuario = await api.solicitud('/api/v1/users/' + userId + '/status', { autenticado: true });
-      if (!usuario || usuario.id !== userId || typeof usuario.active !== 'boolean') {
+      const user = await api.request('/api/v1/users/' + userId + '/status', { authenticated: true });
+      if (!user || user.id !== userId || typeof user.active !== 'boolean') {
         throw new Error('El servidor no devolvio un estado valido para ese usuario.');
       }
-      mostrarUsuario(usuario);
-      mensaje('Cuenta encontrada. Indique el motivo para continuar.', 'informacion');
-    } catch (error) { manejarError(error); }
-    finally { consulta.disabled = false; }
+      displayUser(user);
+      message('Cuenta encontrada. Indique el motivo para continuar.', 'informacion');
+    } catch (error) { handleError(error); }
+    finally { lookupButton.disabled = false; }
   }
-  function manejarError(error) {
+  function handleError(error) {
     if (error.status === 401) {
-      api.cerrarSesion();
+      api.clearSession();
       window.location.replace('index.html');
       return;
     }
@@ -196,70 +196,70 @@
       window.location.replace('panel.html');
       return;
     }
-    mensaje(error.message || 'No se pudo completar la operacion.', 'error');
+    message(error.message || 'No se pudo completar la operacion.', 'error');
   }
   id.addEventListener('input', function () {
-    invalidarSeleccion();
-    errorId.textContent = '';
+    invalidateSelection();
+    idError.textContent = '';
     id.removeAttribute('aria-invalid');
-    mensaje('', '');
+    message('', '');
   });
-  motivo.addEventListener('input', function () {
-    errorMotivo.textContent = '';
-    motivo.removeAttribute('aria-invalid');
+  reason.addEventListener('input', function () {
+    reasonError.textContent = '';
+    reason.removeAttribute('aria-invalid');
   });
-  consulta.addEventListener('click', consultar);
-  formulario.addEventListener('submit', async function (evento) {
-    evento.preventDefault();
-    if (!usuarioActual || boton.disabled) return;
-    const texto = motivo.value.trim();
-    if (!texto || texto.length > 500) {
-      errorMotivo.textContent = texto ? 'El motivo no puede superar 500 caracteres.' : 'Es obligatorio indicar un motivo.';
-      motivo.setAttribute('aria-invalid', 'true');
-      motivo.focus();
-      mensaje('Revise el motivo del cambio.', 'error');
+  lookupButton.addEventListener('click', fetchDetails);
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    if (!currentUser || submitButton.disabled) return;
+    const text = reason.value.trim();
+    if (!text || text.length > 500) {
+      reasonError.textContent = text ? 'El motivo no puede superar 500 caracteres.' : 'Es obligatorio indicar un motivo.';
+      reason.setAttribute('aria-invalid', 'true');
+      reason.focus();
+      message('Revise el motivo del cambio.', 'error');
       return;
     }
-    const cambiarA = !usuarioActual.active;
-    const verbo = cambiarA ? 'activar' : 'inactivar';
-    if (!window.confirm('¿Confirma que desea ' + verbo + ' al usuario ' + usuarioActual.email + '?')) return;
+    const switchTo = !currentUser.active;
+    const verbo = switchTo ? 'activar' : 'inactivar';
+    if (!window.confirm('¿Confirma que desea ' + verbo + ' al usuario ' + currentUser.email + '?')) return;
 
-    boton.disabled = true;
-    cancelar.disabled = true;
-    consulta.disabled = true;
+    submitButton.disabled = true;
+    cancelButton.disabled = true;
+    lookupButton.disabled = true;
     id.disabled = true;
-    motivo.disabled = true;
-    const abrirEliminacion = document.getElementById('abrir-eliminacion');
-    if (abrirEliminacion) abrirEliminacion.disabled = true;
-    mensaje('Guardando cambio...', 'informacion');
+    reason.disabled = true;
+    const openDeletion = document.getElementById('abrir-eliminacion');
+    if (openDeletion) openDeletion.disabled = true;
+    message('Guardando cambio...', 'informacion');
     try {
-      const respuesta = await api.solicitud('/api/v1/users/' + usuarioActual.id + '/status', {
-        method: 'PATCH', autenticado: true, body: { active: cambiarA, reason: texto },
+      const response = await api.request('/api/v1/users/' + currentUser.id + '/status', {
+        method: 'PATCH', authenticated: true, body: { active: switchTo, reason: text },
       });
-      if (!respuesta || respuesta.id !== usuarioActual.id || respuesta.active !== cambiarA) {
+      if (!response || response.id !== currentUser.id || response.active !== switchTo) {
         throw new Error('El servidor no confirmo correctamente el cambio de estado.');
       }
-      mostrarUsuario(respuesta);
-      mensaje('El usuario ' + respuesta.email + ' fue ' + (cambiarA ? 'activado' : 'inactivado') + ' correctamente.', 'exito');
-      if (respuesta.id === sesion.id && !cambiarA) {
-        api.cerrarSesion();
-        ficha.hidden = true;
-        seccion.hidden = true;
-        mensaje('Su propia cuenta fue inactivada. Debe iniciar sesion con una cuenta activa.', 'exito');
+      displayUser(response);
+      message('El usuario ' + response.email + ' fue ' + (switchTo ? 'activado' : 'inactivado') + ' correctamente.', 'exito');
+      if (response.id === session.id && !switchTo) {
+        api.clearSession();
+        profileCard.hidden = true;
+        section.hidden = true;
+        message('Su propia cuenta fue inactivada. Debe iniciar sesion con una cuenta activa.', 'exito');
       }
-    } catch (error) { manejarError(error); }
+    } catch (error) { handleError(error); }
     finally {
-      boton.disabled = false; cancelar.disabled = false; consulta.disabled = false;
-      id.disabled = false; motivo.disabled = false;
-      if (abrirEliminacion) abrirEliminacion.disabled = false;
+      submitButton.disabled = false; cancelButton.disabled = false; lookupButton.disabled = false;
+      id.disabled = false; reason.disabled = false;
+      if (openDeletion) openDeletion.disabled = false;
     }
   });
-  cancelar.addEventListener('click', function () {
-    if (cancelar.disabled) return;
+  cancelButton.addEventListener('click', function () {
+    if (cancelButton.disabled) return;
     // CA03: salir sin emitir ninguna solicitud PATCH.
-    formulario.reset();
-    invalidarSeleccion();
-    mensaje('', '');
+    form.reset();
+    invalidateSelection();
+    message('', '');
     window.location.assign('panel.html');
   });
 })();

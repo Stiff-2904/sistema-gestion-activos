@@ -3,35 +3,35 @@
   "use strict";
 
   // Configuracion de cada catalogo: ruta del API, limites y etiquetas del segundo campo.
-  const CATALOGOS = {
-    ubicaciones: { titulo: "Ubicaciones", singular: "ubicacion", maxNombre: 100, etiquetaDetalle: "Edificio", detalleObligatorio: true, maxDetalle: 100 },
-    estados: { titulo: "Estados", singular: "estado", maxNombre: 50, etiquetaDetalle: "Descripcion", detalleObligatorio: false, maxDetalle: 500 },
-    categorias: { titulo: "Categorias", singular: "categoria", maxNombre: 100, etiquetaDetalle: "Descripcion", detalleObligatorio: false, maxDetalle: 500 },
-    "modos-adquisicion": { titulo: "Modos de adquisicion", singular: "modo de adquisicion", maxNombre: 100, etiquetaDetalle: "Descripcion", detalleObligatorio: false, maxDetalle: 500 },
+  const CATALOG_TYPES = {
+    ubicaciones: { title: "Ubicaciones", singular: "ubicacion", maxNameLength: 100, detailLabel: "Edificio", detailRequired: true, maxDetailLength: 100 },
+    estados: { title: "Estados", singular: "estado", maxNameLength: 50, detailLabel: "Descripcion", detailRequired: false, maxDetailLength: 500 },
+    categorias: { title: "Categorias", singular: "categoria", maxNameLength: 100, detailLabel: "Descripcion", detailRequired: false, maxDetailLength: 500 },
+    "modos-adquisicion": { title: "Modos de adquisicion", singular: "modo de adquisicion", maxNameLength: 100, detailLabel: "Descripcion", detailRequired: false, maxDetailLength: 500 },
   };
 
-  function texto(valor) {
-    return String(valor === undefined || valor === null ? "" : valor).trim();
+  function text(value) {
+    return String(value === undefined || value === null ? "" : value).trim();
   }
 
-  function validarElemento(tipo, datos) {
-    const config = CATALOGOS[tipo];
-    if (!config) return { valido: false, errores: { tipo: "Catalogo no reconocido." }, datos: null };
-    const nombre = texto(datos.name);
-    const detalle = texto(datos.detail);
-    const errores = {};
+  function validateItem(type, data) {
+    const config = CATALOG_TYPES[type];
+    if (!config) return { valid: false, errors: { type: "Catalogo no reconocido." }, data: null };
+    const name = text(data.name);
+    const detail = text(data.detail);
+    const errors = {};
 
-    if (!nombre) errores.name = "El nombre es obligatorio.";
-    else if (nombre.length > config.maxNombre) errores.name = "El nombre no puede superar " + config.maxNombre + " caracteres.";
+    if (!name) errors.name = "El nombre es obligatorio.";
+    else if (name.length > config.maxNameLength) errors.name = "El nombre no puede superar " + config.maxNameLength + " caracteres.";
 
-    if (!detalle && config.detalleObligatorio) errores.detail = "El campo " + config.etiquetaDetalle.toLowerCase() + " es obligatorio.";
-    else if (detalle.length > config.maxDetalle) errores.detail = "El campo " + config.etiquetaDetalle.toLowerCase() + " no puede superar " + config.maxDetalle + " caracteres.";
+    if (!detail && config.detailRequired) errors.detail = "El campo " + config.detailLabel.toLowerCase() + " es obligatorio.";
+    else if (detail.length > config.maxDetailLength) errors.detail = "El campo " + config.detailLabel.toLowerCase() + " no puede superar " + config.maxDetailLength + " caracteres.";
 
-    if (Object.keys(errores).length > 0) return { valido: false, errores, datos: null };
-    return { valido: true, errores: {}, datos: { name: nombre, detail: detalle || null } };
+    if (Object.keys(errors).length > 0) return { valid: false, errors, data: null };
+    return { valid: true, errors: {}, data: { name: name, detail: detail || null } };
   }
 
-  const API = { CATALOGOS, validarElemento };
+  const API = { CATALOG_TYPES, validateItem };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
-  else root.SGACatalogoValidaciones = API;
+  else root.CatalogValidation = API;
 })(typeof window !== "undefined" ? window : globalThis);

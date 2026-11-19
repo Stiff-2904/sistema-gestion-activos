@@ -10,10 +10,10 @@ function makeElement() {
   const handlers = {};
   const classes = new Set();
   return {
-    _texto: '',
-    get textContent() { return this._texto; },
+    _text: '',
+    get textContent() { return this._text; },
     // Asignar '' vacia los hijos, igual que en un navegador real
-    set textContent(v) { this._texto = v; if (v === '') this.children.length = 0; },
+    set textContent(v) { this._text = v; if (v === '') this.children.length = 0; },
     value: '', type: 'password', className: '', hidden: false, disabled: false, dataset: {},
     attrs: {}, handlers, focusCount: 0, resetCount: 0, children: [],
     classList: { add(x) { classes.add(x); }, remove(x) { classes.delete(x); }, toggle(x, force) { if (force ?? !classes.has(x)) classes.add(x); else classes.delete(x); return classes.has(x); }, contains(x) { return classes.has(x); } },
@@ -22,7 +22,7 @@ function makeElement() {
     addEventListener(k, fn) { handlers[k] = fn; },
     focus() { this.focusCount++; },
     reset() { this.resetCount++; },
-    appendChild(hijo) { this.children.push(hijo); },
+    appendChild(childElement) { this.children.push(childElement); },
   };
 }
 function jsonReply(status, body) {
@@ -64,10 +64,10 @@ function runPage(page, { response, session, confirmResult = true } = {}) {
   const storage = new Map();
   if (session) storage.set('sga_sesion',JSON.stringify(session));
   const browser = {
-    SGARegistroValidaciones: validator,
-    SGARolValidaciones: validatorRol,
-    SGAActivoValidaciones: validatorActivo,
-    SGACatalogoValidaciones: validatorCatalogo,
+    UserRegistrationValidation: validator,
+    RoleChangeValidation: validatorRol,
+    AssetValidation: validatorActivo,
+    CatalogValidation: validatorCatalogo,
     sessionStorage: {
       getItem: k => storage.get(k) || null,
       setItem: (k,v) => storage.set(k,v),

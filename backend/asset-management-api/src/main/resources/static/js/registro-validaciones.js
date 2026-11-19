@@ -4,37 +4,37 @@
 
   const ROLES = Object.freeze(["SUPERUSER", "INTERMEDIATE_USER", "BASIC_USER"]);
 
-  function validarUsuario(datos) {
-    const nombre = String(datos.name || "").trim();
-    const correo = String(datos.email || "").trim().toLowerCase();
-    const contrasena = String(datos.password || "");
-    const rol = String(datos.role || "").trim();
-    const errores = {};
+  function validateUser(data) {
+    const name = String(data.name || "").trim();
+    const emailInput = String(data.email || "").trim().toLowerCase();
+    const passwordInput = String(data.password || "");
+    const roleInput = String(data.role || "").trim();
+    const errors = {};
 
-    if (!nombre) errores.name = "El nombre es obligatorio.";
-    else if (nombre.length > 100) errores.name = "Máximo 100 caracteres.";
+    if (!name) errors.name = "El nombre es obligatorio.";
+    else if (name.length > 100) errors.name = "Máximo 100 caracteres.";
 
-    if (!correo) errores.email = "El correo es obligatorio.";
-    else if (correo.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-      errores.email = "Ingrese un correo válido, por ejemplo nombre@institucion.cr.";
+    if (!emailInput) errors.email = "El correo es obligatorio.";
+    else if (emailInput.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
+      errors.email = "Ingrese un correo válido, por ejemplo nombre@institucion.cr.";
     }
 
-    if (!contrasena.trim()) errores.password = "La contraseña es obligatoria.";
-    else if (contrasena.length < 6 || contrasena.length > 100) {
-      errores.password = "La contraseña debe tener entre 6 y 100 caracteres.";
+    if (!passwordInput.trim()) errors.password = "La contraseña es obligatoria.";
+    else if (passwordInput.length < 6 || passwordInput.length > 100) {
+      errors.password = "La contraseña debe tener entre 6 y 100 caracteres.";
     }
 
-    if (!rol) errores.role = "Seleccione un rol.";
-    else if (!ROLES.includes(rol)) errores.role = "El rol seleccionado no es válido.";
+    if (!roleInput) errors.role = "Seleccione un rol.";
+    else if (!ROLES.includes(roleInput)) errors.role = "El rol seleccionado no es válido.";
 
     return {
-      valido: Object.keys(errores).length === 0,
-      errores,
-      datos: { name: nombre, email: correo, password: contrasena, role: rol },
+      valid: Object.keys(errors).length === 0,
+      errors,
+      data: { name: name, email: emailInput, password: passwordInput, role: roleInput },
     };
   }
 
-  const API = { ROLES, validarUsuario };
+  const API = { ROLES, validateUser };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
-  else root.SGARegistroValidaciones = API;
+  else root.UserRegistrationValidation = API;
 })(typeof window !== "undefined" ? window : globalThis);

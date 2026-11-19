@@ -1,14 +1,14 @@
 /* HU-GA-01: POST autenticado, validaciones, permisos y cancelacion sin cambios. */
 (function () {
   'use strict';
-  const api = window.SGAAPI;
-  const formulario = document.getElementById('formulario-activo');
-  const aviso = document.getElementById('mensaje-activo');
-  const boton = document.getElementById('boton-registrar-activo');
-  const cancelar = document.getElementById('cancelar-activo');
+  const api = window.AssetManagementAPI;
+  const form = document.getElementById('formulario-activo');
+  const notice = document.getElementById('mensaje-activo');
+  const submitButton = document.getElementById('boton-registrar-activo');
+  const cancelButton = document.getElementById('cancelar-activo');
 
   // clave del formulario -> id del campo en la pagina
-  const CAMPOS = {
+  const FIELDS = {
     assetNumber: 'numero-activo',
     description: 'descripcion-activo',
     brand: 'marca-activo',
@@ -23,123 +23,123 @@
     notes: 'observaciones-activo',
   };
   // lista del catalogo -> campo que se llena y nombre para el mensaje de lista vacia
-  const LISTAS = {
-    statuses: { clave: 'statusId', nombre: 'estados', obligatoria: true },
-    locations: { clave: 'locationId', nombre: 'ubicaciones', obligatoria: true },
-    categories: { clave: 'categoryId', nombre: 'categorias', obligatoria: true },
-    acquisitionModes: { clave: 'acquisitionModeId', nombre: 'modos de adquisicion', obligatoria: true },
-    responsibles: { clave: 'currentResponsibleId', nombre: 'responsables', obligatoria: false },
+  const LISTS = {
+    statuses: { key: 'statusId', name: 'estados', required: true },
+    locations: { key: 'locationId', name: 'ubicaciones', required: true },
+    categories: { key: 'categoryId', name: 'categorias', required: true },
+    acquisitionModes: { key: 'acquisitionModeId', name: 'modos de adquisicion', required: true },
+    responsibles: { key: 'currentResponsibleId', name: 'responsables', required: false },
   };
-  const campos = {};
-  for (const [clave, id] of Object.entries(CAMPOS)) campos[clave] = document.getElementById(id);
+  const fields = {};
+  for (const [key, id] of Object.entries(FIELDS)) fields[key] = document.getElementById(id);
 
   // Sin sesion va al login; con sesion pero sin rol SUPERUSER vuelve a la pantalla principal.
-  const sesion = api.sesion();
-  if (!sesion) {
+  const session = api.session();
+  if (!session) {
     window.location.replace('index.html');
     return;
   }
-  if (sesion.role !== 'SUPERUSER') {
+  if (session.role !== 'SUPERUSER') {
     window.location.replace('panel.html');
     return;
   }
 
-  function mensaje(texto = '', clase = '') {
-    aviso.textContent = texto;
-    aviso.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
+  function message(text = '', cssClass = '') {
+    notice.textContent = text;
+    notice.className = 'mensaje-formulario' + (cssClass ? ' ' + cssClass : '');
   }
-  function limpiar() {
-    mensaje();
-    for (const [clave, campo] of Object.entries(campos)) {
-      campo.classList.remove('campo-invalido');
-      campo.removeAttribute('aria-invalid');
-      document.getElementById('error-' + CAMPOS[clave]).textContent = '';
+  function clear() {
+    message();
+    for (const [key, field] of Object.entries(fields)) {
+      field.classList.remove('campo-invalido');
+      field.removeAttribute('aria-invalid');
+      document.getElementById('error-' + FIELDS[key]).textContent = '';
     }
   }
-  for (const campo of Object.values(campos)) {
-    campo.addEventListener('input', limpiar);
-    campo.addEventListener('change', limpiar);
+  for (const field of Object.values(fields)) {
+    field.addEventListener('input', clear);
+    field.addEventListener('change', clear);
   }
 
-  function llenarLista(select, elementos) {
-    for (const elemento of elementos) {
-      const opcion = document.createElement('option');
-      opcion.value = String(elemento.id);
-      opcion.textContent = elemento.name;
-      select.appendChild(opcion);
+  function populateSelect(select, items) {
+    for (const item of items) {
+      const option = document.createElement('option');
+      option.value = String(item.id);
+      option.textContent = item.name;
+      select.appendChild(option);
     }
   }
 
   // Las listas desplegables salen de la base de datos, no estan escritas en la pagina.
-  async function cargarCatalogo() {
+  async function loadCatalog() {
     try {
-      const catalogo = await api.solicitud('/api/v1/assets/catalog', { autenticado: true });
+      const catalog = await api.request('/api/v1/assets/catalog', { authenticated: true });
       const vacias = [];
-      for (const [lista, destino] of Object.entries(LISTAS)) {
-        const elementos = Array.isArray(catalogo[lista]) ? catalogo[lista] : [];
-        llenarLista(campos[destino.clave], elementos);
-        if (destino.obligatoria && elementos.length === 0) vacias.push(destino.nombre);
+      for (const [list, destination] of Object.entries(LISTS)) {
+        const items = Array.isArray(catalog[list]) ? catalog[list] : [];
+        populateSelect(fields[destination.key], items);
+        if (destination.required && items.length === 0) vacias.push(destination.name);
       }
       if (vacias.length > 0) {
-        mensaje('No hay ' + vacias.join(', ') + ' registrados en el sistema. Agreguelos en la base de datos antes de registrar activos.', 'error');
+        message('No hay ' + vacias.join(', ') + ' registrados en el sistema. Agreguelos en la base de datos antes de registrar activos.', 'error');
       }
     } catch (error) {
       if (error.status === 401) {
-        api.cerrarSesion();
+        api.clearSession();
         window.location.replace('index.html');
         return;
       }
-      mensaje(error.message, 'error');
+      message(error.message, 'error');
     }
   }
 
-  formulario.addEventListener('submit', async function (evento) {
-    evento.preventDefault();
-    if (boton.disabled) return;
-    limpiar();
-    const datos = Object.fromEntries(
-      Object.entries(campos).map(([clave, campo]) => [clave, campo.value]));
-    const resultado = window.SGAActivoValidaciones.validarActivo(datos);
-    if (!resultado.valido) {
-      for (const [clave, texto] of Object.entries(resultado.errores)) {
-        campos[clave].classList.add('campo-invalido');
-        campos[clave].setAttribute('aria-invalid', 'true');
-        document.getElementById('error-' + CAMPOS[clave]).textContent = texto;
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    if (submitButton.disabled) return;
+    clear();
+    const data = Object.fromEntries(
+      Object.entries(fields).map(([key, field]) => [key, field.value]));
+    const result = window.AssetValidation.validateAsset(data);
+    if (!result.valid) {
+      for (const [key, text] of Object.entries(result.errors)) {
+        fields[key].classList.add('campo-invalido');
+        fields[key].setAttribute('aria-invalid', 'true');
+        document.getElementById('error-' + FIELDS[key]).textContent = text;
       }
-      campos[Object.keys(resultado.errores)[0]].focus();
-      mensaje('Revise los campos senalados antes de continuar.', 'error');
+      fields[Object.keys(result.errors)[0]].focus();
+      message('Revise los campos senalados antes de continuar.', 'error');
       return;
     }
 
-    boton.disabled = true;
-    cancelar.disabled = true; // No ofrecer cancelacion cuando el POST ya ha comenzado.
-    mensaje('Registrando activo...', 'informacion');
+    submitButton.disabled = true;
+    cancelButton.disabled = true; // No ofrecer cancelacion cuando el POST ya ha comenzado.
+    message('Registrando activo...', 'informacion');
     try {
-      const respuesta = await api.solicitud('/api/v1/assets', {
-        method: 'POST', body: resultado.datos, autenticado: true,
+      const response = await api.request('/api/v1/assets', {
+        method: 'POST', body: result.data, authenticated: true,
       });
-      if (!respuesta || !respuesta.id || respuesta.assetNumber !== resultado.datos.assetNumber) {
+      if (!response || !response.id || response.assetNumber !== result.data.assetNumber) {
         throw new Error('El servidor no confirmo correctamente el registro.');
       }
-      formulario.reset();
-      mensaje('Activo ' + respuesta.assetNumber + ' registrado correctamente con ID ' + respuesta.id + '.', 'exito');
+      form.reset();
+      message('Activo ' + response.assetNumber + ' registrado correctamente con ID ' + response.id + '.', 'exito');
     } catch (error) {
       if (error.status === 401) {
-        api.cerrarSesion();
+        api.clearSession();
         window.location.replace('index.html');
         return;
       }
-      mensaje(error.message, 'error');
-    } finally { boton.disabled = false; cancelar.disabled = false; }
+      message(error.message, 'error');
+    } finally { submitButton.disabled = false; cancelButton.disabled = false; }
   });
 
-  cancelar.addEventListener('click', function () {
-    if (cancelar.disabled) return;
+  cancelButton.addEventListener('click', function () {
+    if (cancelButton.disabled) return;
     // CA05: cancelar descarta los datos y jamas ejecuta POST.
-    formulario.reset();
-    limpiar();
+    form.reset();
+    clear();
     window.location.assign('panel.html');
   });
 
-  cargarCatalogo();
+  loadCatalog();
 })();

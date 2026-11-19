@@ -1,85 +1,85 @@
 /* HU-GU-02: POST autenticado, validaciones, permisos y cancelación sin cambios. */
 (function () {
   'use strict';
-  const api = window.SGAAPI;
-  const formulario = document.getElementById('formulario-registro');
-  const aviso = document.getElementById('mensaje-registro');
-  const boton = document.getElementById('boton-registrar');
-  const cancelar = document.getElementById('cancelar-registro');
-  const campos = {
+  const api = window.AssetManagementAPI;
+  const form = document.getElementById('formulario-registro');
+  const notice = document.getElementById('mensaje-registro');
+  const submitButton = document.getElementById('boton-registrar');
+  const cancelButton = document.getElementById('cancelar-registro');
+  const fields = {
     name: document.getElementById('nombre'),
     email: document.getElementById('correo'),
     password: document.getElementById('clave'),
     role: document.getElementById('rol'),
   };
-  const sesion = api.sesion();
-  if (!sesion || sesion.role !== 'SUPERUSER') {
+  const session = api.session();
+  if (!session || session.role !== 'SUPERUSER') {
     window.location.replace('index.html');
     return;
   }
 
-  function mensaje(texto = '', clase = '') {
-    aviso.textContent = texto;
-    aviso.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
+  function message(text = '', cssClass = '') {
+    notice.textContent = text;
+    notice.className = 'mensaje-formulario' + (cssClass ? ' ' + cssClass : '');
   }
-  function limpiar() {
-    mensaje();
-    for (const [clave, campo] of Object.entries(campos)) {
-      campo.classList.remove('campo-invalido');
-      campo.removeAttribute('aria-invalid');
-      document.getElementById('error-' + clave).textContent = '';
+  function clear() {
+    message();
+    for (const [key, field] of Object.entries(fields)) {
+      field.classList.remove('campo-invalido');
+      field.removeAttribute('aria-invalid');
+      document.getElementById('error-' + key).textContent = '';
     }
   }
-  for (const campo of Object.values(campos)) {
-    campo.addEventListener('input', limpiar);
-    campo.addEventListener('change', limpiar);
+  for (const field of Object.values(fields)) {
+    field.addEventListener('input', clear);
+    field.addEventListener('change', clear);
   }
 
-  formulario.addEventListener('submit', async function (evento) {
-    evento.preventDefault();
-    if (boton.disabled) return;
-    limpiar();
-    const datos = Object.fromEntries(
-      Object.entries(campos).map(([clave, campo]) => [clave, campo.value]));
-    const resultado = window.SGARegistroValidaciones.validarUsuario(datos);
-    if (!resultado.valido) {
-      for (const [clave, texto] of Object.entries(resultado.errores)) {
-        campos[clave].classList.add('campo-invalido');
-        campos[clave].setAttribute('aria-invalid', 'true');
-        document.getElementById('error-' + clave).textContent = texto;
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    if (submitButton.disabled) return;
+    clear();
+    const data = Object.fromEntries(
+      Object.entries(fields).map(([key, field]) => [key, field.value]));
+    const result = window.UserRegistrationValidation.validateUser(data);
+    if (!result.valid) {
+      for (const [key, text] of Object.entries(result.errors)) {
+        fields[key].classList.add('campo-invalido');
+        fields[key].setAttribute('aria-invalid', 'true');
+        document.getElementById('error-' + key).textContent = text;
       }
-      campos[Object.keys(resultado.errores)[0]].focus();
-      mensaje('Revise los campos señalados antes de continuar.', 'error');
+      fields[Object.keys(result.errors)[0]].focus();
+      message('Revise los campos señalados antes de continuar.', 'error');
       return;
     }
 
-    boton.disabled = true;
-    cancelar.disabled = true; // No ofrecer cancelación cuando el POST ya ha comenzado.
-    mensaje('Registrando usuario...', 'informacion');
+    submitButton.disabled = true;
+    cancelButton.disabled = true; // No ofrecer cancelación cuando el POST ya ha comenzado.
+    message('Registrando usuario...', 'informacion');
     try {
-      const respuesta = await api.solicitud('/api/v1/users', {
-        method: 'POST', body: resultado.datos, autenticado: true,
+      const response = await api.request('/api/v1/users', {
+        method: 'POST', body: result.data, authenticated: true,
       });
-      if (!respuesta || !respuesta.id || respuesta.email !== resultado.datos.email) {
+      if (!response || !response.id || response.email !== result.data.email) {
         throw new Error('El servidor no confirmó correctamente el registro.');
       }
-      formulario.reset();
-      mensaje('Usuario ' + respuesta.email + ' registrado correctamente con rol ' + respuesta.role + '.', 'exito');
+      form.reset();
+      message('Usuario ' + response.email + ' registrado correctamente con rol ' + response.role + '.', 'exito');
     } catch (error) {
       if (error.status === 401) {
-        api.cerrarSesion();
+        api.clearSession();
         window.location.replace('index.html');
         return;
       }
-      mensaje(error.message, 'error');
-    } finally { boton.disabled = false; cancelar.disabled = false; }
+      message(error.message, 'error');
+    } finally { submitButton.disabled = false; cancelButton.disabled = false; }
   });
 
-  cancelar.addEventListener('click', function () {
-    if (cancelar.disabled) return;
+  cancelButton.addEventListener('click', function () {
+    if (cancelButton.disabled) return;
     // CA04: cancelar descarta los datos y jamás ejecuta POST.
-    formulario.reset();
-    limpiar();
+    form.reset();
+    clear();
     window.location.assign('panel.html');
   });
 })();

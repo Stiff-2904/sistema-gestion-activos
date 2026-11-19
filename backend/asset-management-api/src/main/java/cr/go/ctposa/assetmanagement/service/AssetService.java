@@ -162,85 +162,85 @@ public class AssetService {
         }
         Asset asset = assetRepository.findById(id)
                 .orElseThrow(() -> new AssetNotFoundException(id));
-        String numero = request.getAssetNumber().trim();
-        if (!numero.equals(asset.getAssetNumber()) && assetRepository.existsByAssetNumber(numero)) {
+        String assetNumber = request.getAssetNumber().trim();
+        if (!assetNumber.equals(asset.getAssetNumber()) && assetRepository.existsByAssetNumber(assetNumber)) {
             throw new IllegalArgumentException("Ya existe un activo con ese numero de identificacion");
         }
 
-        AssetStatus estado = statusRepository.findById(request.getStatusId())
+        AssetStatus status = statusRepository.findById(request.getStatusId())
                 .orElseThrow(() -> new IllegalArgumentException("El estado indicado no existe"));
-        Location ubicacion = locationRepository.findById(request.getLocationId())
+        Location location = locationRepository.findById(request.getLocationId())
                 .orElseThrow(() -> new IllegalArgumentException("La ubicacion indicada no existe"));
-        Category categoria = categoryRepository.findById(request.getCategoryId())
+        Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("La categoria indicada no existe"));
-        AcquisitionMode modo = acquisitionModeRepository.findById(request.getAcquisitionModeId())
+        AcquisitionMode acquisitionMode = acquisitionModeRepository.findById(request.getAcquisitionModeId())
                 .orElseThrow(() -> new IllegalArgumentException("El modo de adquisicion indicado no existe"));
-        User responsable = null;
+        User responsible = null;
         if (request.getCurrentResponsibleId() != null) {
-            responsable = userRepository.findById(request.getCurrentResponsibleId())
+            responsible = userRepository.findById(request.getCurrentResponsibleId())
                     .orElseThrow(() -> new IllegalArgumentException("El responsable indicado no existe"));
-            if (!Boolean.TRUE.equals(responsable.getActive())) {
+            if (!Boolean.TRUE.equals(responsible.getActive())) {
                 throw new IllegalArgumentException("El responsable indicado esta inactivo");
             }
         }
 
         // Identificamos primero al usuario; si falla, no se toca el activo.
         User actor = currentActor();
-        StringJoiner cambios = new StringJoiner("; ");
-        agregarCambio(cambios, "numero_id", asset.getAssetNumber(), numero);
-        agregarCambio(cambios, "descripcion", asset.getDescription(), request.getDescription().trim());
-        agregarCambio(cambios, "marca", asset.getBrand(), blankToNull(request.getBrand()));
-        agregarCambio(cambios, "modelo", asset.getModel(), blankToNull(request.getModel()));
-        agregarCambio(cambios, "serie", asset.getSerial(), blankToNull(request.getSerial()));
-        agregarCambio(cambios, "precio", asset.getPrice(), request.getPrice());
-        agregarCambio(cambios, "estado_id", asset.getStatus().getId(), estado.getId());
-        agregarCambio(cambios, "ubicacion_id", asset.getLocation().getId(), ubicacion.getId());
-        agregarCambio(cambios, "categoria_id", asset.getCategory().getId(), categoria.getId());
-        agregarCambio(cambios, "modo_id", asset.getAcquisitionMode().getId(), modo.getId());
-        agregarCambio(cambios, "responsable_id",
+        StringJoiner changes = new StringJoiner("; ");
+        addChange(changes, "numero_id", asset.getAssetNumber(), assetNumber);
+        addChange(changes, "descripcion", asset.getDescription(), request.getDescription().trim());
+        addChange(changes, "marca", asset.getBrand(), blankToNull(request.getBrand()));
+        addChange(changes, "modelo", asset.getModel(), blankToNull(request.getModel()));
+        addChange(changes, "serie", asset.getSerial(), blankToNull(request.getSerial()));
+        addChange(changes, "precio", asset.getPrice(), request.getPrice());
+        addChange(changes, "estado_id", asset.getStatus().getId(), status.getId());
+        addChange(changes, "ubicacion_id", asset.getLocation().getId(), location.getId());
+        addChange(changes, "categoria_id", asset.getCategory().getId(), category.getId());
+        addChange(changes, "modo_id", asset.getAcquisitionMode().getId(), acquisitionMode.getId());
+        addChange(changes, "responsable_id",
                 asset.getCurrentResponsible() == null ? null : asset.getCurrentResponsible().getId(),
-                responsable == null ? null : responsable.getId());
-        agregarCambio(cambios, "observaciones", asset.getNotes(), blankToNull(request.getNotes()));
+                responsible == null ? null : responsible.getId());
+        addChange(changes, "observaciones", asset.getNotes(), blankToNull(request.getNotes()));
 
-        asset.setAssetNumber(numero);
+        asset.setAssetNumber(assetNumber);
         asset.setDescription(request.getDescription().trim());
         asset.setBrand(blankToNull(request.getBrand()));
         asset.setModel(blankToNull(request.getModel()));
         asset.setSerial(blankToNull(request.getSerial()));
         asset.setPrice(request.getPrice());
-        asset.setStatus(estado);
-        asset.setLocation(ubicacion);
-        asset.setCategory(categoria);
-        asset.setAcquisitionMode(modo);
-        asset.setCurrentResponsible(responsable);
+        asset.setStatus(status);
+        asset.setLocation(location);
+        asset.setCategory(category);
+        asset.setAcquisitionMode(acquisitionMode);
+        asset.setCurrentResponsible(responsible);
         asset.setNotes(blankToNull(request.getNotes()));
         // No se modifica dado_baja: corresponde a otra operacion de negocio.
 
-        if (cambios.length() == 0) return toDetailResponse(asset);
-        Asset guardado;
+        if (changes.length() == 0) return toDetailResponse(asset);
+        Asset saved;
         try {
-            guardado = assetRepository.save(asset);
+            saved = assetRepository.save(asset);
         } catch (DataIntegrityViolationException ex) {
             throw new IllegalArgumentException("No se pudo actualizar: el numero de identificacion ya existe");
         }
-        Audit auditoria = new Audit();
-        auditoria.setUser(actor);
-        auditoria.setAction("UPDATE_ASSET");
-        auditoria.setAffectedTable(AUDIT_TABLE);
-        auditoria.setDetails(auditPrefix(guardado.getId()) + " Cambios: " + cambios);
-        auditRepository.save(auditoria);
-        return toDetailResponse(guardado);
+        Audit audit = new Audit();
+        audit.setUser(actor);
+        audit.setAction("UPDATE_ASSET");
+        audit.setAffectedTable(AUDIT_TABLE);
+        audit.setDetails(auditPrefix(saved.getId()) + " Cambios: " + changes);
+        auditRepository.save(audit);
+        return toDetailResponse(saved);
     }
 
-    private void agregarCambio(StringJoiner cambios, String campo, Object antes, Object despues) {
-        if (!Objects.equals(antes, despues)) {
-            cambios.add(campo + " [" + valorAuditoria(antes) + " -> " + valorAuditoria(despues) + "]");
+    private void addChange(StringJoiner changes, String field, Object before, Object after) {
+        if (!Objects.equals(before, after)) {
+            changes.add(field + " [" + formatAuditValue(before) + " -> " + formatAuditValue(after) + "]");
         }
     }
 
-    private String valorAuditoria(Object valor) {
-        if (valor == null) return "(vacio)";
-        return String.valueOf(valor).replace("\r", " ").replace("\n", " ")
+    private String formatAuditValue(Object value) {
+        if (value == null) return "(vacio)";
+        return String.valueOf(value).replace("\r", " ").replace("\n", " ")
                 .replace(";", ",").replace("[", "(").replace("]", ")");
     }
 

@@ -2,44 +2,44 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {runPage,jsonReply}=require('./util.cjs');
 const admin={token:'jwt.super',role:'SUPERUSER',id:1};
-const modelo={id:5,assetNumber:'ACT-005',description:'Antes de editar',brand:'Dell',model:'Latitude',serial:'XA1',price:15000,
+const model={id:5,assetNumber:'ACT-005',description:'Antes de editar',brand:'Dell',model:'Latitude',serial:'XA1',price:15000,
   statusId:1,status:'Activo',locationId:2,categoryId:3,acquisitionModeId:4,currentResponsibleId:null,notes:''};
-const catalogo={statuses:[{id:1,name:'Activo'}],locations:[{id:2,name:'Oficina'}],categories:[{id:3,name:'Equipo'}],acquisitionModes:[{id:4,name:'Compra'}],responsibles:[]};
+const catalog={statuses:[{id:1,name:'Activo'}],locations:[{id:2,name:'Oficina'}],categories:[{id:3,name:'Equipo'}],acquisitionModes:[{id:4,name:'Compra'}],responsibles:[]};
 const tick=()=>new Promise(setImmediate);
 
 test('El listado aparece al entrar, y seleccionar Actualizar carga datos en la misma página',async()=>{
-  const activo={...modelo};
-  const ui=runPage('actualizar-activo.js',{session:admin,response:(ruta)=>{
-    if(ruta==='/api/v1/assets')return jsonReply(200,[activo]);
-    if(ruta==='/api/v1/assets/catalog')return jsonReply(200,catalogo);
-    if(ruta==='/api/v1/assets/5')return jsonReply(200,activo);
-    throw new Error('ruta inesperada '+ruta);
+  const asset={...model};
+  const ui=runPage('actualizar-activo.js',{session:admin,response:(route)=>{
+    if(route==='/api/v1/assets')return jsonReply(200,[asset]);
+    if(route==='/api/v1/assets/catalog')return jsonReply(200,catalog);
+    if(route==='/api/v1/assets/5')return jsonReply(200,asset);
+    throw new Error('ruta inesperada '+route);
   }});
   await tick();
   assert.equal(ui.dom['tabla-edicion-activos'].hidden,false);
   assert.equal(ui.dom['cuerpo-edicion-activos'].children.length,1);
-  const fila=ui.dom['cuerpo-edicion-activos'].children[0];
-  assert.equal(fila.children[2].textContent,'Antes de editar');
-  fila.children[4].children[0].handlers.click();
+  const row=ui.dom['cuerpo-edicion-activos'].children[0];
+  assert.equal(row.children[2].textContent,'Antes de editar');
+  row.children[4].children[0].handlers.click();
   await tick();
   assert.equal(ui.dom['seccion-edicion'].hidden,false);
   assert.equal(ui.dom['id-edicion'].value,'5');
   assert.equal(ui.dom['descripcion-activo'].value,'Antes de editar');
   assert.equal(ui.history.length,0);
-  assert.equal(fila.classList.contains('consulta-fila-seleccionada'),true);
+  assert.equal(row.classList.contains('consulta-fila-seleccionada'),true);
 });
 
 test('Guardar actualiza la tabla con los datos devueltos por el backend',async()=>{
-  let activo={...modelo};
-  const ui=runPage('actualizar-activo.js',{session:admin,response:(ruta,options)=>{
-    if(ruta==='/api/v1/assets')return jsonReply(200,[activo]);
-    if(ruta==='/api/v1/assets/catalog')return jsonReply(200,catalogo);
-    if(ruta==='/api/v1/assets/5' && options.method==='GET')return jsonReply(200,activo);
-    if(ruta==='/api/v1/assets/5' && options.method==='PUT'){
-      activo={...activo,description:JSON.parse(options.body).description};
-      return jsonReply(200,activo);
+  let asset={...model};
+  const ui=runPage('actualizar-activo.js',{session:admin,response:(route,options)=>{
+    if(route==='/api/v1/assets')return jsonReply(200,[asset]);
+    if(route==='/api/v1/assets/catalog')return jsonReply(200,catalog);
+    if(route==='/api/v1/assets/5' && options.method==='GET')return jsonReply(200,asset);
+    if(route==='/api/v1/assets/5' && options.method==='PUT'){
+      asset={...asset,description:JSON.parse(options.body).description};
+      return jsonReply(200,asset);
     }
-    throw new Error('ruta inesperada '+ruta);
+    throw new Error('ruta inesperada '+route);
   }});
   await tick();
   ui.dom['cuerpo-edicion-activos'].children[0].children[4].children[0].handlers.click();
@@ -55,10 +55,10 @@ test('Guardar actualiza la tabla con los datos devueltos por el backend',async()
 });
 
 test('Cancelar abandona edición sin PUT y conserva el listado dentro de la página',async()=>{
-  const ui=runPage('actualizar-activo.js',{session:admin,response:(ruta)=>{
-    if(ruta==='/api/v1/assets')return jsonReply(200,[modelo]);
-    if(ruta==='/api/v1/assets/catalog')return jsonReply(200,catalogo);
-    return jsonReply(200,modelo);
+  const ui=runPage('actualizar-activo.js',{session:admin,response:(route)=>{
+    if(route==='/api/v1/assets')return jsonReply(200,[model]);
+    if(route==='/api/v1/assets/catalog')return jsonReply(200,catalog);
+    return jsonReply(200,model);
   }});
   await tick();
   ui.dom['cuerpo-edicion-activos'].children[0].children[4].children[0].handlers.click();

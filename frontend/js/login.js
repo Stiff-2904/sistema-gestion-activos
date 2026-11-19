@@ -1,67 +1,67 @@
 /* HU-GU-01: inicio de sesion contra el backend y creacion de la sesion con SGAAPI. */
 (function () {
   'use strict';
-  const api = window.SGAAPI;
-  const formulario = document.getElementById('formulario-login');
-  const usuario = document.getElementById('usuario');
-  const contrasena = document.getElementById('contrasena');
-  const boton = document.getElementById('boton-login');
-  const aviso = document.getElementById('mensaje-formulario');
-  const mostrar = document.getElementById('mostrar-contrasena');
-  const errorUsuario = document.getElementById('error-usuario');
-  const errorContrasena = document.getElementById('error-contrasena');
-  const formatoCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const api = window.AssetManagementAPI;
+  const form = document.getElementById('formulario-login');
+  const user = document.getElementById('usuario');
+  const passwordInput = document.getElementById('contrasena');
+  const submitButton = document.getElementById('boton-login');
+  const notice = document.getElementById('mensaje-formulario');
+  const show = document.getElementById('mostrar-contrasena');
+  const usernameError = document.getElementById('error-usuario');
+  const passwordError = document.getElementById('error-contrasena');
+  const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  function mensaje(texto = '', clase = '') {
-    aviso.textContent = texto;
-    aviso.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
+  function message(text = '', cssClass = '') {
+    notice.textContent = text;
+    notice.className = 'mensaje-formulario' + (cssClass ? ' ' + cssClass : '');
   }
-  function limpiar() {
-    mensaje();
-    errorUsuario.textContent = '';
-    errorContrasena.textContent = '';
-    usuario.classList.remove('campo-invalido');
-    contrasena.classList.remove('campo-invalido');
+  function clear() {
+    message();
+    usernameError.textContent = '';
+    passwordError.textContent = '';
+    user.classList.remove('campo-invalido');
+    passwordInput.classList.remove('campo-invalido');
   }
 
-  mostrar.addEventListener('click', function () {
-    const tipo = contrasena.type === 'password' ? 'text' : 'password';
-    contrasena.type = tipo;
-    mostrar.textContent = tipo === 'password' ? 'Mostrar' : 'Ocultar';
-    mostrar.setAttribute('aria-pressed', String(tipo === 'text'));
+  show.addEventListener('click', function () {
+    const type = passwordInput.type === 'password' ? 'text' : 'password';
+    passwordInput.type = type;
+    show.textContent = type === 'password' ? 'Mostrar' : 'Ocultar';
+    show.setAttribute('aria-pressed', String(type === 'text'));
   });
 
-  formulario.addEventListener('submit', async function (evento) {
-    evento.preventDefault();
-    if (boton.disabled) return;
-    limpiar();
-    const email = usuario.value.trim().toLowerCase();
-    const password = contrasena.value;
-    let valido = true;
-    if (!formatoCorreo.test(email)) {
-      errorUsuario.textContent = 'Ingrese un correo electrónico válido.';
-      usuario.classList.add('campo-invalido');
-      valido = false;
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    if (submitButton.disabled) return;
+    clear();
+    const email = user.value.trim().toLowerCase();
+    const password = passwordInput.value;
+    let valid = true;
+    if (!EMAIL_PATTERN.test(email)) {
+      usernameError.textContent = 'Ingrese un correo electrónico válido.';
+      user.classList.add('campo-invalido');
+      valid = false;
     }
     if (!password) {
-      errorContrasena.textContent = 'Ingrese su contraseña.';
-      contrasena.classList.add('campo-invalido');
-      valido = false;
+      passwordError.textContent = 'Ingrese su contraseña.';
+      passwordInput.classList.add('campo-invalido');
+      valid = false;
     }
-    if (!valido) return;
+    if (!valid) return;
 
-    boton.disabled = true;
-    mensaje('Iniciando sesion...', 'informacion');
+    submitButton.disabled = true;
+    message('Iniciando sesion...', 'informacion');
     try {
-      const datos = await api.solicitud('/api/v1/auth/login', {
+      const data = await api.request('/api/v1/auth/login', {
         method: 'POST', body: { email, password },
       });
-      api.guardarSesion(datos);
-      contrasena.value = '';
+      api.saveSession(data);
+      passwordInput.value = '';
       window.location.assign('panel.html');
     } catch (error) {
-      mensaje(error.status === 401 ? 'Correo o contraseña incorrectos.' : error.message, 'error');
-      boton.disabled = false;
+      message(error.status === 401 ? 'Correo o contraseña incorrectos.' : error.message, 'error');
+      submitButton.disabled = false;
     }
   });
 })();

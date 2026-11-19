@@ -1,246 +1,246 @@
 /* HU-GA-03: CA01 actualizacion PUT, CA02 obligatorios, CA03 formato, CA04 cancelar. */
 (function () {
   'use strict';
-  const api = window.SGAAPI;
-  const sesion = api.sesion();
-  if (!sesion) { window.location.replace('index.html'); return; }
-  if (sesion.role !== 'SUPERUSER') { window.location.replace('panel.html'); return; }
+  const api = window.AssetManagementAPI;
+  const session = api.session();
+  if (!session) { window.location.replace('index.html'); return; }
+  if (session.role !== 'SUPERUSER') { window.location.replace('panel.html'); return; }
 
-  const formularioBuscar = document.getElementById('formulario-buscar-edicion');
-  const campoId = document.getElementById('id-edicion');
-  const errorId = document.getElementById('error-id-edicion');
-  const mensajeCarga = document.getElementById('mensaje-carga-edicion');
-  const botonCargar = document.getElementById('boton-cargar-edicion');
-  const seccion = document.getElementById('seccion-edicion');
-  const tituloId = document.getElementById('id-activo-cargado');
-  const formulario = document.getElementById('formulario-edicion');
-  const aviso = document.getElementById('mensaje-edicion');
-  const guardar = document.getElementById('boton-guardar-edicion');
-  const cancelar = document.getElementById('cancelar-edicion');
-  const avisoListado = document.getElementById('mensaje-listado-edicion');
-  const cuerpoListado = document.getElementById('cuerpo-edicion-activos');
-  const tablaListado = document.getElementById('tabla-edicion-activos');
-  const CAMPOS = {
+  const searchForm = document.getElementById('formulario-buscar-edicion');
+  const idField = document.getElementById('id-edicion');
+  const idError = document.getElementById('error-id-edicion');
+  const loadingNotice = document.getElementById('mensaje-carga-edicion');
+  const loadButton = document.getElementById('boton-cargar-edicion');
+  const section = document.getElementById('seccion-edicion');
+  const assetIdTitle = document.getElementById('id-activo-cargado');
+  const form = document.getElementById('formulario-edicion');
+  const notice = document.getElementById('mensaje-edicion');
+  const save = document.getElementById('boton-guardar-edicion');
+  const cancelButton = document.getElementById('cancelar-edicion');
+  const listNotice = document.getElementById('mensaje-listado-edicion');
+  const listBody = document.getElementById('cuerpo-edicion-activos');
+  const listTable = document.getElementById('tabla-edicion-activos');
+  const FIELDS = {
     assetNumber: 'numero-activo', description: 'descripcion-activo', brand: 'marca-activo',
     model: 'modelo-activo', serial: 'serie-activo', price: 'precio-activo',
     statusId: 'estado-activo', locationId: 'ubicacion-activo', categoryId: 'categoria-activo',
     acquisitionModeId: 'modo-activo', currentResponsibleId: 'responsable-activo', notes: 'observaciones-activo',
   };
-  const LISTAS = {
+  const LISTS = {
     statuses: 'statusId', locations: 'locationId', categories: 'categoryId',
     acquisitionModes: 'acquisitionModeId', responsibles: 'currentResponsibleId',
   };
-  const campos = Object.fromEntries(Object.entries(CAMPOS).map(([k, id]) => [k, document.getElementById(id)]));
-  let idActual = null;
+  const fields = Object.fromEntries(Object.entries(FIELDS).map(([k, id]) => [k, document.getElementById(id)]));
+  let currentId = null;
   let version = 0;
-  let enviando = false;
-  let catalogoListo = false;
-  let promesaCatalogo = null;
+  let submitting = false;
+  let catalogReady = false;
+  let catalogPromise = null;
   let versionListado = 0;
 
-  function mensaje(elemento, texto = '', clase = '') {
-    elemento.textContent = texto;
-    elemento.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
+  function message(item, text = '', cssClass = '') {
+    item.textContent = text;
+    item.className = 'mensaje-formulario' + (cssClass ? ' ' + cssClass : '');
   }
-  function limpiarErrores() {
-    for (const [clave, campo] of Object.entries(campos)) {
-      campo.classList.remove('campo-invalido');
-      campo.removeAttribute('aria-invalid');
-      document.getElementById('error-' + CAMPOS[clave]).textContent = '';
+  function clearErrors() {
+    for (const [key, field] of Object.entries(fields)) {
+      field.classList.remove('campo-invalido');
+      field.removeAttribute('aria-invalid');
+      document.getElementById('error-' + FIELDS[key]).textContent = '';
     }
   }
-  Object.values(campos).forEach(campo => {
-    campo.addEventListener('input', limpiarErrores);
-    campo.addEventListener('change', limpiarErrores);
+  Object.values(fields).forEach(field => {
+    field.addEventListener('input', clearErrors);
+    field.addEventListener('change', clearErrors);
   });
-  function datosEnFormulario(activo) {
-    for (const [clave, campo] of Object.entries(campos)) {
-      campo.value = activo[clave] === null || activo[clave] === undefined ? '' : String(activo[clave]);
+  function hasFormData(asset) {
+    for (const [key, field] of Object.entries(fields)) {
+      field.value = asset[key] === null || asset[key] === undefined ? '' : String(asset[key]);
     }
   }
-  function esIdValido(valor) {
-    return /^[1-9]\d*$/.test(String(valor).trim()) && Number.isSafeInteger(Number(valor));
+  function isValidId(value) {
+    return /^[1-9]\d*$/.test(String(value).trim()) && Number.isSafeInteger(Number(value));
   }
 
-  function cargarCatalogo() {
+  function loadCatalog() {
     // Compartir la misma solicitud si se seleccionan varios activos con rapidez.
-    if (!promesaCatalogo) {
-      promesaCatalogo = api.solicitud('/api/v1/assets/catalog', { autenticado: true })
-        .then(catalogo => {
-          for (const lista of Object.keys(LISTAS)) {
-            if (!Array.isArray(catalogo[lista])) throw new Error('No fue posible obtener el catálogo de ' + lista + '.');
+    if (!catalogPromise) {
+      catalogPromise = api.request('/api/v1/assets/catalog', { authenticated: true })
+        .then(catalog => {
+          for (const list of Object.keys(LISTS)) {
+            if (!Array.isArray(catalog[list])) throw new Error('No fue posible obtener el catálogo de ' + list + '.');
           }
-          for (const [lista, clave] of Object.entries(LISTAS)) {
-            for (const entrada of catalogo[lista]) {
-              const opcion = document.createElement('option');
-              opcion.value = String(entrada.id);
-              opcion.textContent = entrada.name;
-              campos[clave].appendChild(opcion);
+          for (const [list, key] of Object.entries(LISTS)) {
+            for (const entry of catalog[list]) {
+              const option = document.createElement('option');
+              option.value = String(entry.id);
+              option.textContent = entry.name;
+              fields[key].appendChild(option);
             }
           }
-          catalogoListo = true;
+          catalogReady = true;
         })
-        .catch(error => { promesaCatalogo = null; throw error; });
+        .catch(error => { catalogPromise = null; throw error; });
     }
-    return promesaCatalogo;
+    return catalogPromise;
   }
 
-  function destacarSeleccion() {
-    for (const fila of cuerpoListado.children) {
-      const seleccionada = idActual !== null && Number(fila.dataset.assetId) === idActual;
-      fila.classList.toggle('consulta-fila-seleccionada', seleccionada);
-      const accion = fila.children[4] && fila.children[4].children[0];
-      if (accion) accion.setAttribute('aria-pressed', String(seleccionada));
+  function highlightSelection() {
+    for (const row of listBody.children) {
+      const selected = currentId !== null && Number(row.dataset.assetId) === currentId;
+      row.classList.toggle('consulta-fila-seleccionada', selected);
+      const action = row.children[4] && row.children[4].children[0];
+      if (action) action.setAttribute('aria-pressed', String(selected));
     }
   }
 
-  async function cargarListado() {
-    const actual = ++versionListado;
-    avisoListado.textContent = 'Actualizando listado de activos...';
+  async function loadAssetList() {
+    const current = ++versionListado;
+    listNotice.textContent = 'Actualizando listado de activos...';
     try {
-      const activos = await api.solicitud('/api/v1/assets', { autenticado: true });
-      if (actual !== versionListado) return;
-      if (!Array.isArray(activos)) throw new Error('El listado de activos tiene un formato inválido.');
-      cuerpoListado.textContent = '';
-      for (const activo of activos) {
-        const fila = document.createElement('tr');
-        fila.dataset.assetId = String(activo.id);
-        for (const clave of ['id', 'assetNumber', 'description', 'status']) {
-          const celda = document.createElement('td');
-          const valor = activo[clave];
-          celda.textContent = valor === null || valor === undefined || valor === '' ? 'No registrado' : String(valor);
-          fila.appendChild(celda);
+      const assets = await api.request('/api/v1/assets', { authenticated: true });
+      if (current !== versionListado) return;
+      if (!Array.isArray(assets)) throw new Error('El listado de activos tiene un formato inválido.');
+      listBody.textContent = '';
+      for (const asset of assets) {
+        const row = document.createElement('tr');
+        row.dataset.assetId = String(asset.id);
+        for (const key of ['id', 'assetNumber', 'description', 'status']) {
+          const createCell = document.createElement('td');
+          const value = asset[key];
+          createCell.textContent = value === null || value === undefined || value === '' ? 'No registrado' : String(value);
+          row.appendChild(createCell);
         }
-        const acciones = document.createElement('td');
-        const boton = document.createElement('button');
-        boton.type = 'button';
-        boton.className = 'consulta-ver consulta-editar';
-        boton.textContent = 'Actualizar';
-        boton.setAttribute('aria-label', 'Actualizar activo ' + String(activo.assetNumber));
-        boton.addEventListener('click', () => {
-          if (enviando) return;
-          campoId.value = String(activo.id);
-          cargarActivo(activo.id, true);
+        const actions = document.createElement('td');
+        const submitButton = document.createElement('button');
+        submitButton.type = 'button';
+        submitButton.className = 'consulta-ver consulta-editar';
+        submitButton.textContent = 'Actualizar';
+        submitButton.setAttribute('aria-label', 'Actualizar activo ' + String(asset.assetNumber));
+        submitButton.addEventListener('click', () => {
+          if (submitting) return;
+          idField.value = String(asset.id);
+          loadAsset(asset.id, true);
         });
-        acciones.appendChild(boton);
-        fila.appendChild(acciones);
-        cuerpoListado.appendChild(fila);
+        actions.appendChild(submitButton);
+        row.appendChild(actions);
+        listBody.appendChild(row);
       }
-      tablaListado.hidden = activos.length === 0;
-      avisoListado.textContent = activos.length ? 'Activos disponibles: ' + activos.length + '.' : 'No hay activos registrados.';
-      destacarSeleccion();
+      listTable.hidden = assets.length === 0;
+      listNotice.textContent = assets.length ? 'Activos disponibles: ' + assets.length + '.' : 'No hay activos registrados.';
+      highlightSelection();
     } catch (error) {
-      if (actual !== versionListado) return;
-      if (error.status === 401) { api.cerrarSesion(); window.location.replace('index.html'); return; }
-      avisoListado.textContent = 'No se pudo cargar el listado: ' + error.message;
+      if (current !== versionListado) return;
+      if (error.status === 401) { api.clearSession(); window.location.replace('index.html'); return; }
+      listNotice.textContent = 'No se pudo cargar el listado: ' + error.message;
     }
   }
 
-  async function cargarActivo(valor, desdeListado = false) {
-    if (enviando) return;
-    const actual = ++version;
-    idActual = null;
-    destacarSeleccion();
-    seccion.hidden = true;
-    mensaje(aviso);
-    limpiarErrores();
-    errorId.textContent = '';
-    if (!esIdValido(valor)) {
-      errorId.textContent = 'Ingrese un ID entero y positivo.';
-      campoId.focus();
-      mensaje(mensajeCarga, 'Revise el ID del activo.', 'error');
+  async function loadAsset(value, fromList = false) {
+    if (submitting) return;
+    const current = ++version;
+    currentId = null;
+    highlightSelection();
+    section.hidden = true;
+    message(notice);
+    clearErrors();
+    idError.textContent = '';
+    if (!isValidId(value)) {
+      idError.textContent = 'Ingrese un ID entero y positivo.';
+      idField.focus();
+      message(loadingNotice, 'Revise el ID del activo.', 'error');
       return;
     }
-    botonCargar.disabled = true;
-    mensaje(mensajeCarga, 'Cargando datos del activo...', 'informacion');
+    loadButton.disabled = true;
+    message(loadingNotice, 'Cargando datos del activo...', 'informacion');
     try {
-      if (!catalogoListo) await cargarCatalogo();
-      const respuesta = await api.solicitud('/api/v1/assets/' + Number(valor), { autenticado: true });
-      if (actual !== version) return;
-      if (!respuesta || respuesta.id !== Number(valor)) throw new Error('El servidor devolvió un activo inesperado.');
-      idActual = respuesta.id;
-      datosEnFormulario(respuesta);
-      destacarSeleccion();
-      tituloId.textContent = '· ID ' + respuesta.id;
-      seccion.hidden = false;
-      mensaje(mensajeCarga, 'Activo cargado. Puede editar los campos y guardar.', 'exito');
-      if (desdeListado && typeof seccion.scrollIntoView === 'function') {
-        seccion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!catalogReady) await loadCatalog();
+      const response = await api.request('/api/v1/assets/' + Number(value), { authenticated: true });
+      if (current !== version) return;
+      if (!response || response.id !== Number(value)) throw new Error('El servidor devolvió un activo inesperado.');
+      currentId = response.id;
+      hasFormData(response);
+      highlightSelection();
+      assetIdTitle.textContent = '· ID ' + response.id;
+      section.hidden = false;
+      message(loadingNotice, 'Activo cargado. Puede editar los campos y guardar.', 'exito');
+      if (fromList && typeof section.scrollIntoView === 'function') {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     } catch (error) {
-      if (actual !== version) return;
-      if (error.status === 401) { api.cerrarSesion(); window.location.replace('index.html'); return; }
-      mensaje(mensajeCarga, error.status === 404 ? 'El activo con ID ' + Number(valor) + ' no existe.' : error.message, 'error');
+      if (current !== version) return;
+      if (error.status === 401) { api.clearSession(); window.location.replace('index.html'); return; }
+      message(loadingNotice, error.status === 404 ? 'El activo con ID ' + Number(value) + ' no existe.' : error.message, 'error');
     } finally {
-      if (actual === version) botonCargar.disabled = false;
+      if (current === version) loadButton.disabled = false;
     }
   }
 
-  formularioBuscar.addEventListener('submit', evento => {
-    evento.preventDefault();
-    cargarActivo(campoId.value);
+  searchForm.addEventListener('submit', event => {
+    event.preventDefault();
+    loadAsset(idField.value);
   });
 
-  formulario.addEventListener('submit', async evento => {
-    evento.preventDefault();
-    if (enviando || idActual === null) return;
-    limpiarErrores();
-    const datos = Object.fromEntries(Object.entries(campos).map(([clave, campo]) => [clave, campo.value]));
-    const resultado = window.SGAActivoValidaciones.validarActivo(datos);
-    if (!resultado.valido) {
-      for (const [clave, texto] of Object.entries(resultado.errores)) {
-        campos[clave].classList.add('campo-invalido');
-        campos[clave].setAttribute('aria-invalid', 'true');
-        document.getElementById('error-' + CAMPOS[clave]).textContent = texto;
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (submitting || currentId === null) return;
+    clearErrors();
+    const data = Object.fromEntries(Object.entries(fields).map(([key, field]) => [key, field.value]));
+    const result = window.AssetValidation.validateAsset(data);
+    if (!result.valid) {
+      for (const [key, text] of Object.entries(result.errors)) {
+        fields[key].classList.add('campo-invalido');
+        fields[key].setAttribute('aria-invalid', 'true');
+        document.getElementById('error-' + FIELDS[key]).textContent = text;
       }
-      campos[Object.keys(resultado.errores)[0]].focus();
-      mensaje(aviso, 'Revise los campos señalados. No se enviaron cambios.', 'error');
+      fields[Object.keys(result.errors)[0]].focus();
+      message(notice, 'Revise los campos señalados. No se enviaron cambios.', 'error');
       return;
     }
-    enviando = true;
-    guardar.disabled = true;
-    cancelar.disabled = true; // Evita cancelar despues de iniciado el PUT.
-    botonCargar.disabled = true;
-    mensaje(aviso, 'Guardando actualización...', 'informacion');
+    submitting = true;
+    save.disabled = true;
+    cancelButton.disabled = true; // Evita cancelar despues de iniciado el PUT.
+    loadButton.disabled = true;
+    message(notice, 'Guardando actualización...', 'informacion');
     try {
-      const respuesta = await api.solicitud('/api/v1/assets/' + idActual, {
-        method: 'PUT', body: resultado.datos, autenticado: true,
+      const response = await api.request('/api/v1/assets/' + currentId, {
+        method: 'PUT', body: result.data, authenticated: true,
       });
-      if (!respuesta || respuesta.id !== idActual || respuesta.assetNumber !== resultado.datos.assetNumber) {
+      if (!response || response.id !== currentId || response.assetNumber !== result.data.assetNumber) {
         throw new Error('El servidor no confirmó la actualización correctamente.');
       }
-      datosEnFormulario(respuesta);
-      await cargarListado();
-      mensaje(aviso, 'Activo ' + respuesta.assetNumber + ' actualizado correctamente. Cambio registrado en auditoría.', 'exito');
+      hasFormData(response);
+      await loadAssetList();
+      message(notice, 'Activo ' + response.assetNumber + ' actualizado correctamente. Cambio registrado en auditoría.', 'exito');
     } catch (error) {
-      if (error.status === 401) { api.cerrarSesion(); window.location.replace('index.html'); return; }
-      mensaje(aviso, error.message, 'error');
+      if (error.status === 401) { api.clearSession(); window.location.replace('index.html'); return; }
+      message(notice, error.message, 'error');
     } finally {
-      enviando = false;
-      guardar.disabled = false;
-      cancelar.disabled = false;
-      botonCargar.disabled = false;
+      submitting = false;
+      save.disabled = false;
+      cancelButton.disabled = false;
+      loadButton.disabled = false;
     }
   });
 
-  cancelar.addEventListener('click', () => {
-    if (enviando) return;
+  cancelButton.addEventListener('click', () => {
+    if (submitting) return;
     ++version;
-    idActual = null;
-    formulario.reset();
-    campoId.value = '';
-    errorId.textContent = '';
-    limpiarErrores();
-    destacarSeleccion();
-    seccion.hidden = true;
-    mensaje(aviso);
-    mensaje(mensajeCarga, 'Actualización cancelada. No se guardaron cambios.', 'informacion');
+    currentId = null;
+    form.reset();
+    idField.value = '';
+    idError.textContent = '';
+    clearErrors();
+    highlightSelection();
+    section.hidden = true;
+    message(notice);
+    message(loadingNotice, 'Actualización cancelada. No se guardaron cambios.', 'informacion');
     // Se mantiene el listado visible para seleccionar otro activo sin salir.
   });
 
   // Cuando se seleccionó «Actualizar» desde el listado, precargar el ID.
   const query = window.location && typeof window.location.search === 'string'
     ? new URLSearchParams(window.location.search).get('id') : null;
-  cargarListado();
-  if (query) { campoId.value = query; cargarActivo(query); }
+  loadAssetList();
+  if (query) { idField.value = query; loadAsset(query); }
 })();

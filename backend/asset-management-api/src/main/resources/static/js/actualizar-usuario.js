@@ -1,85 +1,85 @@
 /* HU-GU-03: PUT autenticado, validaciones, permisos y cancelacion sin cambios. */
 (function () {
   'use strict';
-  const api = window.SGAAPI;
+  const api = window.AssetManagementAPI;
   const form = document.getElementById('formulario-actualizacion');
-  const mensaje = document.getElementById('mensaje-actualizacion');
-  const guardar = document.getElementById('boton-actualizar');
-  const cancelar = document.getElementById('cancelar-actualizacion');
-  const idCampo = document.getElementById('id-usuario');
-  const nombre = document.getElementById('nombre');
-  const correo = document.getElementById('correo');
-  const clave = document.getElementById('clave');
-  const rol = document.getElementById('rol');
+  const message = document.getElementById('mensaje-actualizacion');
+  const save = document.getElementById('boton-actualizar');
+  const cancelButton = document.getElementById('cancelar-actualizacion');
+  const idField = document.getElementById('id-usuario');
+  const name = document.getElementById('nombre');
+  const emailInput = document.getElementById('correo');
+  const key = document.getElementById('clave');
+  const roleInput = document.getElementById('rol');
 
-  const sesion = api.sesion();
-  if (!sesion) {
+  const session = api.session();
+  if (!session) {
     window.location.replace('index.html');
     return;
   }
-  if (sesion.role !== 'SUPERUSER') {
+  if (session.role !== 'SUPERUSER') {
     window.location.replace('panel.html');
     return;
   }
 
-  function avisar(texto, clase = '') {
-    mensaje.textContent = texto;
-    mensaje.className = 'mensaje-formulario' + (clase ? ' ' + clase : '');
+  function notify(text, cssClass = '') {
+    message.textContent = text;
+    message.className = 'mensaje-formulario' + (cssClass ? ' ' + cssClass : '');
   }
 
-  form.addEventListener('submit', async function (evento) {
-    evento.preventDefault();
-    if (guardar.disabled) return;
-    const id = Number(idCampo.value);
-    const password = clave.value;
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    if (save.disabled) return;
+    const id = Number(idField.value);
+    const password = key.value;
 
     if (!Number.isSafeInteger(id) || id < 1) {
-      avisar('Debe indicar un ID de usuario válido.', 'error');
-      idCampo.focus();
+      notify('Debe indicar un ID de usuario válido.', 'error');
+      idField.focus();
       return;
     }
     if (password && (password.length < 6 || password.length > 100)) {
-      avisar('La contraseña debe tener entre 6 y 100 caracteres.', 'error');
-      clave.focus();
+      notify('La contraseña debe tener entre 6 y 100 caracteres.', 'error');
+      key.focus();
       return;
     }
 
-    guardar.disabled = true;
-    cancelar.disabled = true;
-    avisar('Guardando cambios...', 'informacion');
+    save.disabled = true;
+    cancelButton.disabled = true;
+    notify('Guardando cambios...', 'informacion');
     try {
-      const respuesta = await api.solicitud('/api/v1/users/' + id, {
+      const response = await api.request('/api/v1/users/' + id, {
         method: 'PUT',
-        autenticado: true,
+        authenticated: true,
         body: {
-          name: nombre.value.trim(),
-          email: correo.value.trim().toLowerCase(),
+          name: name.value.trim(),
+          email: emailInput.value.trim().toLowerCase(),
           password: password ? password : null,
-          role: rol.value,
+          role: roleInput.value,
         },
       });
       form.reset();
-      if (respuesta.id === sesion.id) {
-        api.cerrarSesion();
-        avisar('Usuario actualizado correctamente. Inicie sesión nuevamente para aplicar los cambios.', 'exito');
+      if (response.id === session.id) {
+        api.clearSession();
+        notify('Usuario actualizado correctamente. Inicie sesión nuevamente para aplicar los cambios.', 'exito');
       } else {
-        avisar('Usuario actualizado correctamente.', 'exito');
+        notify('Usuario actualizado correctamente.', 'exito');
       }
     } catch (error) {
       if (error.status === 401) {
-        api.cerrarSesion();
+        api.clearSession();
         window.location.replace('index.html');
         return;
       }
-      avisar(error.message, 'error');
+      notify(error.message, 'error');
     } finally {
-      guardar.disabled = false;
-      cancelar.disabled = false;
+      save.disabled = false;
+      cancelButton.disabled = false;
     }
   });
 
-  cancelar.addEventListener('click', function () {
-    if (cancelar.disabled) return;
+  cancelButton.addEventListener('click', function () {
+    if (cancelButton.disabled) return;
     form.reset();
     window.location.assign('panel.html');
   });
